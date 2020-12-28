@@ -1,0 +1,62 @@
+[gd_scene load_steps=7 format=2]
+
+[ext_resource path="res://scenes/player.tscn" type="PackedScene" id=1]
+[ext_resource path="res://scripts/PG_Speed.gd" type="Script" id=2]
+[ext_resource path="res://scripts/Info.gd" type="Script" id=3]
+[ext_resource path="res://sprites/track.jpg" type="Texture" id=4]
+[ext_resource path="res://scripts/PGsteering_wheel.gd" type="Script" id=5]
+[ext_resource path="res://sprites/steering_wheel.png" type="Texture" id=6]
+
+
+
+
+[node name="root" type="Node2D"]
+position = Vector2( 351, 286 )
+
+[node name="track" type="StaticBody2D" parent="."]
+scale = Vector2( 10, 10 )
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="track"]
+polygon = PoolVector2Array( -82.0483, -0.292114, -128.964, 0.593092, -151.337, -10.1378, -165.865, -24.974, -173.283, -54.0282, -167.101, -73.1916, -150.41, -95.1368, -124.447, -104.409, -89.1967, -104.747, -48.4114, -104.992, -8.84829, -134.665, 15.5696, -141.465, 44.6238, -130.028, 69.6598, -105.611, 112.314, -104.683, 146.313, -103.756, 173.204, -87.6835, 184.949, -62.9566, 185.258, 2.5699, 185.258, 95.9142, 173.204, 124.041, 137.968, 138.877, 1.66066, 137.332, -120.6, 136.77, -135.436, 128.734, -146.873, 119.152, -154.6, 106.789, -159.545, 94.4255, -158.618, 70.0076, -146.564, 48.0624, -121.218, 34.1535, -43.6376, 31.3717, 30.2342, 31.6808, 42.5977, 27.3536, 45.3795, 19.3174, 45.9977, 11.5902, 40.7432, 4.48118, 29.307, 2.00848, 19.7253, 1.69939, 19.7253, 15.6083, -144.4, 19.3174, -170.363, 57.335, -165.109, 123.48, -103.291, 155.625, 130.55, 158.041, 179.077, 145.677, 203.804, 95.9142, 201.022, -77.4836, 180.313, -104.683, 70.8962, -130.337, 28.2422, -143.01, 3.51521, -146.101, -26.4662, -131.265, -39.4479, -119.519, -60.4658, -113.338, -123.829, -111.209, -147.01, -104.409, -161.846, -92.355, -172.974, -76.2825, -179.464, -45.6828, -172.664, -24.3558, -157.828, -6.11969, -132.948, 5.01913, -83.3234, 5.61177, -4.52113, 6.55288, 18.9695, 6.86198, 19.5877, 1.6075, -19.9755, 1.2984 )
+
+[node name="Sprite" type="Sprite" parent="track"]
+position = Vector2( 12.0544, 1.14441e-05 )
+texture = ExtResource( 4 )
+
+[node name="CollisionPolygon2D2" type="CollisionPolygon2D" parent="track"]
+polygon = PoolVector2Array( 121.093, -68.4566, 136.505, -66.7442, 142.327, -65.0318, 145.067, -61.607, 148.492, -57.1548, 147.807, 92.1659, 140.272, 97.6455, 132.395, 100.728, -105.97, 100.728, -118.641, 96.6181, -123.436, 81.549, -114.532, 71.2747, -103.915, 67.8499, 26.5694, 67.8499, 53.9677, 63.0552, 76.9138, 37.3693, 79.9961, 4.83383, 65.2695, -22.9069, 31.0216, -35.5786, -112.134, -36.2636, -121.381, -47.2229, -118.641, -65.0318, -107.34, -68.1141, -38.5015, -68.7991, -17.9528, -79.7584, 1.91096, -98.2522, 12.1853, -102.704, 22.1172, -98.9372, 44.3783, -81.8132, 57.3925, -73.2513, 78.9687, -69.484, 108.764, -68.7991 )
+
+[node name="player" parent="." instance=ExtResource( 1 )]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="Info" type="RichTextLabel" parent="CanvasLayer"]
+visible = false
+margin_left = 884.593
+margin_top = 348.236
+margin_right = 1008.59
+margin_bottom = 461.236
+script = ExtResource( 3 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="ProgressBar" type="ProgressBar" parent="CanvasLayer"]
+margin_left = 731.101
+margin_top = 484.776
+margin_right = 1008.1
+margin_bottom = 583.776
+rounded = true
+script = ExtResource( 2 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="steering_wheel" type="Sprite" parent="CanvasLayer"]
+position = Vector2( 76.384, 522.282 )
+scale = Vector2( 0.3, 0.3 )
+texture = ExtResource( 6 )
+script = ExtResource( 5 )
+
+[node name="spawn" type="Node2D" parent="."]
+position = Vector2( 84.0724, -155.842 )
