@@ -17,8 +17,6 @@ cols = 6
 [node name="network" type="Node2D" parent="."]
 position = Vector2( 2, 2 )
 script = ExtResource( 4 )
-save = "runs/main-ai"
-ld = "runs/main-ai"
 
 [node name="cells" type="Camera2D" parent="."]
 position = Vector2( 5000, 3000 )

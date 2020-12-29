@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=2]
 
-[ext_resource path="res://scripts/ai.gd" type="Script" id=1]
+[ext_resource path="res://bin/agent.gdns" type="Script" id=1]
 [ext_resource path="res://sprites/car.png" type="Texture" id=2]
 [ext_resource path="res://scripts/sensor.gd" type="Script" id=3]
 

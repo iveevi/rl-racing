@@ -29,11 +29,12 @@ func _process(_delta):
 	if cc != -1:
 		env.get_child(cc).get_node("track-view").current = true;
 	
+	"""
 	if Input.is_key_pressed(KEY_CONTROL):
 		if Input.is_key_pressed(KEY_S) and cntrl_pressed == false:
-			get_node("network").save();
+			get_node(network).save();
 		
 			cntrl_pressed = true;
 	else:
-		cntrl_pressed = false;
+		cntrl_pressed = false;"""
 	
