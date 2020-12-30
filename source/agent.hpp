@@ -12,17 +12,19 @@
 // Zhetapi headers
 #include <network.hpp>
 #include <std/activation_classes.hpp>
+#include <std/optimizer_classes.hpp>
 
 namespace godot {
 
+using namespace zhetapi;
+
 class Agent : public KinematicBody2D {
-	double velocity;
-
-	int spawns;
-
-	zhetapi::Vector <double> state;
-	
-	zhetapi::ml::NeuralNetwork <double> model;
+private:
+	int				spawns;
+	double				velocity;
+	Vector2				ppos;
+	ml::NeuralNetwork <double>	model;
+	ml::Optimizer <double> *	cost;
 
 	// Instantiate as a Godot class
 	GODOT_CLASS(Agent, KinematicBody2D);
@@ -49,18 +51,23 @@ public:
 	~Agent();
 
 	void rand_reset();
+
+	zhetapi::Vector <double> reward(const zhetapi::Vector <double> &, size_t) const;
+
+	void accelerate(size_t);
+	void steer(size_t);
 	
 	void _init();
 
 	void _ready();
-	void _process(float delta);
+	void run(float delta);		// Main function
 
 	static const double min_vel;
 	static const double max_vel;
 	
-	static const double acceleration;
-	static const double brake;
-	static const double drag;
+	static const double k_a;	// Acceleration constant
+	static const double k_b;	// Brake constant
+	static const double k_d;	// Drag/friction constant
 };
 
 }

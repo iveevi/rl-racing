@@ -2,30 +2,12 @@
 
 namespace godot {
 
-const double Agent::min_vel = -5;
-const double Agent::max_vel = 20;
+const double Agent::min_vel = -1;
+const double Agent::max_vel = 5;
 
-const double Agent::acceleration = 0.00015;
-const double Agent::brake = 0.997;
-const double Agent::drag = 0.999;
-
-void Agent::_register_methods()
-{
-	register_method("_ready", &Agent::_ready);
-	register_method("_process", &Agent::_process);
-
-	register_property <Agent, NodePath> ("spawn", &Agent::spawn, NodePath());
-	register_property <Agent, double> ("angle", &Agent::angle, 0);
-	
-	register_property <Agent, double> ("fright", &Agent::fright, 0);
-	register_property <Agent, double> ("fleft", &Agent::fleft, 0);
-	register_property <Agent, double> ("bright", &Agent::bright, 0);
-	register_property <Agent, double> ("bleft", &Agent::bleft, 0);
-	register_property <Agent, double> ("front", &Agent::front, 0);
-	register_property <Agent, double> ("back", &Agent::back, 0);
-	register_property <Agent, double> ("right", &Agent::right, 0);
-	register_property <Agent, double> ("left", &Agent::left, 0);
-}
+const double Agent::k_a = 0.00005;
+const double Agent::k_b = 0.997;
+const double Agent::k_d = 0.999;
 
 Agent::Agent()
 {
@@ -37,17 +19,24 @@ Agent::Agent()
 		return 0.5 - (rand()/(double) RAND_MAX);
 	};
 
-	model = zhetapi::ml::NeuralNetwork <double> ({
-		{8, new zhetapi::ml::Linear <double> ()},
-		{10, new zhetapi::ml::Sigmoid <double> ()},
-		{10, new zhetapi::ml::ReLU <double> ()},
-		{9, new zhetapi::ml::Linear <double> ()}
+	// Load from JSON file later
+	model = ml::NeuralNetwork <double> ({
+		{8, new ml::Linear <double> ()},
+		{10, new ml::Sigmoid <double> ()},
+		{10, new ml::ReLU <double> ()},
+		{9, new ml::Linear <double> ()}
 	}, initializer);
 
+	cost = new ml::MeanSquaredError <double> ();
+
 	model.randomize();
+	model.set_cost(cost);
 }
 
-Agent::~Agent() {}
+Agent::~Agent()
+{
+	delete cost;
+}
 
 void Agent::rand_reset()
 {
@@ -57,25 +46,61 @@ void Agent::rand_reset()
 	
 	set_rotation(nd->get_rotation());
 	set_global_position(nd->get_global_position());
+
+	ppos = get_global_position();
+
+	velocity = 0;
+}
+
+Vector <double> Agent::reward(const Vector <double> &r, size_t imax) const
+{
+	double distance = get_global_position().distance_to(ppos);
+
+	zhetapi::Vector <double> rt = r;
+
+	rt[imax] = distance - max_vel/2;
+
+	return rt;
+}
+
+// Note, no reversing
+void Agent::accelerate(size_t i)
+{
+	switch (i) {
+	case 0:
+		// Accelerate
+		velocity += k_a;
+		break;
+	case 1:
+		// Brake (exclude for now)
+		// velocity *= k_b;
+		// break;
+	case 2:
+		// Nothing
+		velocity *= k_d;
+		break;
+	}
+}
+
+void Agent::steer(size_t i)
+{
+	switch (i) {
+	case 0:
+		// Left
+		set_rotation(get_rotation() - velocity * 0.0025);
+		break;
+	case 1:
+		// Right
+		set_rotation(get_rotation() + velocity * 0.0025);
+		break;
+	}
 }
 
 void Agent::_init()
 {
 }
 
-void Agent::_ready()
-{
-	spawns = get_node(spawn)->get_child_count();
-
-	Node2D *nd = Object::cast_to <Node2D> (get_node(spawn)->get_child(0));
-
-	set_rotation(angle);
-	set_global_position(nd->get_global_position());
-
-	state = zhetapi::Vector <double> (8, 0.0);
-}
-
-void Agent::_process(float delta)
+void Agent::run(float delta)
 {
 	Ref <KinematicCollision2D> ref = nullptr;
 
@@ -95,24 +120,7 @@ void Agent::_process(float delta)
 		return;
 	}
 
-	// Determine the next step
-	if(Input::get_singleton()->is_key_pressed(GlobalConstants::KEY_UP)) {
-		velocity += acceleration;
-	} else if (Input::get_singleton()->is_key_pressed(GlobalConstants::KEY_SPACE)) {
-		velocity *= brake;
-	} else if (Input::get_singleton()->is_key_pressed(GlobalConstants::KEY_DOWN)) {
-		velocity -= acceleration;
-	} else {
-		velocity *= drag;
-	}
-
-	if (Input::get_singleton()->is_key_pressed(GlobalConstants::KEY_LEFT)) {
-		set_rotation(get_rotation() - velocity * 0.0025);
-	} else if (Input::get_singleton()->is_key_pressed(GlobalConstants::KEY_RIGHT)) {
-		set_rotation(get_rotation() + velocity * 0.0025);
-	}
-
-	zhetapi::Vector st = {
+	Vector <double> st = {
 		fright,
 		fleft,
 		bright,
@@ -123,7 +131,20 @@ void Agent::_process(float delta)
 		left
 	};
 
-	std::cout << "state = " << st << std::endl;
+	// std::cout << "state = " << st << std::endl;
+	Vector <double> rewards = model(st);
+
+	size_t mx = rewards.imax();
+
+	std::cout << "rewards = " << rewards << std::endl;
+	std::cout << "\tmaxi = " << mx << " [gas=" << mx/3 << ", steer=" << mx % 3 << "]" << std::endl;
+	
+	accelerate(mx / 3);
+	steer(mx % 3);
+
+	std::cout << "\ttrue reward: " << reward(rewards, mx) << std::endl;
+
+	ppos = get_global_position();
 }
 
 }

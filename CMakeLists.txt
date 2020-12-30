@@ -14,6 +14,7 @@ set(CMAKE_CXX_COMPILER "g++-8")
 project(agent)
 add_library(agent SHARED
 	source/agent.cpp
+	source/agent_godot.cpp
 	source/lib_agent.cpp
 )
 

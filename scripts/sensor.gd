@@ -10,12 +10,12 @@ func _ready():
 	pass
 
 func _process(delta):
-	var value = 10;
+	var value = 0;
 	
 	if is_colliding():
 		collision_point = get_collision_point();
 		
-		value = log(global_position.distance_to(collision_point));
+		value = global_position.distance_to(collision_point);
 	
 	if name == "fright":
 		parent.fright = value;
