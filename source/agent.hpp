@@ -21,6 +21,7 @@ using namespace zhetapi;
 class Agent : public KinematicBody2D {
 private:
 	int				spawns;
+	int				cycles;
 	double				velocity;
 	Vector2				ppos;
 	ml::NeuralNetwork <double>	model;
@@ -52,7 +53,7 @@ public:
 
 	void rand_reset();
 
-	zhetapi::Vector <double> reward(const zhetapi::Vector <double> &, size_t) const;
+	Vector <double> reward(const Vector <double> &, size_t);
 
 	void accelerate(size_t);
 	void steer(size_t);
@@ -64,6 +65,9 @@ public:
 
 	static const double min_vel;
 	static const double max_vel;
+	static const double idle_vel;	// Maximum velocity considered to be "idle"
+
+	static const int cycle_thresh;	// Number of "idle" cycles before reseting
 	
 	static const double k_a;	// Acceleration constant
 	static const double k_b;	// Brake constant

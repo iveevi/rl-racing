@@ -4,6 +4,9 @@ namespace godot {
 
 const double Agent::min_vel = -1;
 const double Agent::max_vel = 5;
+const double Agent::idle_vel = 0.5;
+
+const int Agent::cycle_thresh = 10000;
 
 const double Agent::k_a = 0.00005;
 const double Agent::k_b = 0.997;
@@ -13,6 +16,8 @@ Agent::Agent()
 {
 	srand(clock());
 
+	cycles = 0;
+	spawn = 0;
 	velocity = 0;
 
 	auto initializer = []() {
@@ -49,12 +54,16 @@ void Agent::rand_reset()
 
 	ppos = get_global_position();
 
+	cycles = 0;
 	velocity = 0;
 }
 
-Vector <double> Agent::reward(const Vector <double> &r, size_t imax) const
+Vector <double> Agent::reward(const Vector <double> &r, size_t imax)
 {
 	double distance = get_global_position().distance_to(ppos);
+
+	if (distance < idle_vel)
+		cycles++;
 
 	zhetapi::Vector <double> rt = r;
 
@@ -114,7 +123,7 @@ void Agent::run(float delta)
 			velocity * sin(get_rotation())
 	));
 
-	if (ref.ptr()) {
+	if (ref.ptr() || cycles >= cycle_thresh) {
 		rand_reset();
 
 		return;
