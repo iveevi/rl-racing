@@ -42,14 +42,9 @@ Agent::~Agent() {}
 
 void Agent::rand_reset()
 {
-	// using namespace std;
-	// cout << "RESETING!\n" << endl;
-
 	int index = rand() % spawns;
 	
 	Node2D *nd = Object::cast_to <Node2D> (get_node(spawn)->get_child(index));
-
-	// cout << "\tspawn(2D) -> " << nd << endl;
 	
 	set_rotation(nd->get_rotation());
 	set_global_position(nd->get_global_position());

@@ -1,7 +1,7 @@
 extends Node2D
 
 # AI
-onready var ai_prefab = load("res://scenes/ai.tscn");
+onready var ai_prefab = load("res://scenes/agent.tscn");
 
 var rounds = 0;
 
@@ -12,7 +12,6 @@ func _ready():
 		var car = ai_prefab.instance();
 		
 		car.spawn = env.get_child(i).get_child(0).get_path();
-		print("car.spawn = " + str(car.spawn));
 		car.angle = -60;
 		
 		add_child(car);
