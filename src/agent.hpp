@@ -2,12 +2,16 @@
 #define CAR_H_
 
 // Godot headers
+#include <GlobalConstants.hpp>
 #include <Godot.hpp>
+#include <Input.hpp>
 #include <KinematicBody2D.hpp>
 #include <KinematicCollision2D.hpp>
 #include <NodePath.hpp>
-#include <Input.hpp>
-#include <GlobalConstants.hpp>
+
+// Zhetapi headers
+#include <network.hpp>
+#include <std/activation_classes.hpp>
 
 namespace godot {
 
@@ -15,6 +19,8 @@ class Agent : public KinematicBody2D {
 	double velocity;
 
 	int spawns;
+
+	zhetapi::ml::NeuralNetwork <double> model;
 
 	// Instantiate as a Godot class
 	GODOT_CLASS(Agent, KinematicBody2D);
