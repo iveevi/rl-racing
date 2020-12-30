@@ -1,2 +1,4 @@
-bin/x11
 *.swp
+*.os
+bin/x11/*
+.import/

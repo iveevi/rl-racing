@@ -11,8 +11,8 @@ script = ExtResource( 1 )
 
 [node name="environments" type="Node2D" parent="."]
 script = ExtResource( 2 )
-rows = 6
-cols = 6
+rows = 1
+cols = 1
 
 [node name="network" type="Node2D" parent="."]
 position = Vector2( 2, 2 )
