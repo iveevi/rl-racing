@@ -1,4 +1,4 @@
-#include "agent.hpp"
+#include <agent.hpp>
 
 namespace godot {
 
@@ -16,6 +16,15 @@ void Agent::_register_methods()
 
 	register_property <Agent, NodePath> ("spawn", &Agent::spawn, NodePath());
 	register_property <Agent, double> ("angle", &Agent::angle, 0);
+	
+	register_property <Agent, double> ("fright", &Agent::fright, 0);
+	register_property <Agent, double> ("fleft", &Agent::fleft, 0);
+	register_property <Agent, double> ("bright", &Agent::bright, 0);
+	register_property <Agent, double> ("bleft", &Agent::bleft, 0);
+	register_property <Agent, double> ("front", &Agent::front, 0);
+	register_property <Agent, double> ("back", &Agent::back, 0);
+	register_property <Agent, double> ("right", &Agent::right, 0);
+	register_property <Agent, double> ("left", &Agent::left, 0);
 }
 
 Agent::Agent()
@@ -62,6 +71,8 @@ void Agent::_ready()
 
 	set_rotation(angle);
 	set_global_position(nd->get_global_position());
+
+	state = zhetapi::Vector <double> (8, 0.0);
 }
 
 void Agent::_process(float delta)
@@ -100,6 +111,19 @@ void Agent::_process(float delta)
 	} else if (Input::get_singleton()->is_key_pressed(GlobalConstants::KEY_RIGHT)) {
 		set_rotation(get_rotation() + velocity * 0.0025);
 	}
+
+	zhetapi::Vector st = {
+		fright,
+		fleft,
+		bright,
+		bleft,
+		front,
+		back,
+		right,
+		left
+	};
+
+	std::cout << "state = " << st << std::endl;
 }
 
 }

@@ -20,6 +20,8 @@ class Agent : public KinematicBody2D {
 
 	int spawns;
 
+	zhetapi::Vector <double> state;
+	
 	zhetapi::ml::NeuralNetwork <double> model;
 
 	// Instantiate as a Godot class
@@ -30,6 +32,15 @@ public:
 	NodePath spawn;
 
 	double angle;
+
+	double fright;
+	double fleft;
+	double bright;
+	double bleft;
+	double front;
+	double back;
+	double right;
+	double left;
 	
 	// Methods
 	static void _register_methods();
@@ -38,7 +49,7 @@ public:
 	~Agent();
 
 	void rand_reset();
-
+	
 	void _init();
 
 	void _ready();

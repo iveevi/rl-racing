@@ -1,6 +1,6 @@
 #!/bin/bash
 
 cmake .
-make all
+make -j8 all
 
 mv libagent.so bin/x11/

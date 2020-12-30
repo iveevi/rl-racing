@@ -17,19 +17,19 @@ func _process(delta):
 		
 		value = log(global_position.distance_to(collision_point));
 	
-#	if name == "fright":
-#		parent.fright = value;
-#	if name == "fleft":
-#		parent.fleft = value;
-#	if name == "bright":
-#		parent.bright = value;
-#	if name == "bleft":
-#		parent.bleft = value;
-#	if name == "front":
-#		parent.front = value;
-#	if name == "back":
-#		parent.back = value;
-#	if name == "right":
-#		parent.right = value;
-#	if name == "left":
-#		parent.left = value;
+	if name == "fright":
+		parent.fright = value;
+	if name == "fleft":
+		parent.fleft = value;
+	if name == "bright":
+		parent.bright = value;
+	if name == "bleft":
+		parent.bleft = value;
+	if name == "front":
+		parent.front = value;
+	if name == "back":
+		parent.back = value;
+	if name == "right":
+		parent.right = value;
+	if name == "left":
+		parent.left = value;

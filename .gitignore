@@ -1,5 +1,6 @@
 *.swp
 *.os
+*.import
 bin/x11/
 .import/
 .sconsign.dblite

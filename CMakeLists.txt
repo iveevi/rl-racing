@@ -14,12 +14,15 @@ set(CMAKE_CXX_COMPILER "g++-8")
 project(agent)
 add_library(agent SHARED
 	source/agent.cpp
-	source/gdlibrary.cpp
+	source/lib_agent.cpp
 )
 
 # Godot bindings
 find_library(GODOT_LIBRARY godot-cpp.linux.debug.64 REQUIRED)
 target_link_libraries(agent PUBLIC ${GODOT_LIBRARY})
+
+# Source include
+include_directories(PUBLIC source)
 
 # Zhetapi include
 include_directories(PUBLIC zhetapi/engine)

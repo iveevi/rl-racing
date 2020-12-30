@@ -1,4 +1,4 @@
-#include "agent.hpp"
+#include <agent.hpp>
 
 extern "C" void GDN_EXPORT godot_gdnative_init(godot_gdnative_init_options *o) {
     godot::Godot::gdnative_init(o);
