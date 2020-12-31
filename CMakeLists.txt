@@ -11,20 +11,16 @@ SET_PROPERTY(GLOBAL PROPERTY TARGET_SUPPORTS_SHARED_LIBS TRUE)
 set(CMAKE_CXX_COMPILER "g++-8")
 
 # Agent library
-project(agent)
-add_library(agent SHARED
+project(racing)
+add_library(racing SHARED
 	source/agent.cpp
-)
-
-project(master)
-add_library(master SHARED
 	source/master.cpp
+	source/lib.cpp
 )
 
 # Godot bindings
 find_library(GODOT_LIBRARY godot-cpp.linux.debug.64 REQUIRED)
-target_link_libraries(agent PUBLIC ${GODOT_LIBRARY})
-target_link_libraries(master PUBLIC ${GODOT_LIBRARY})
+target_link_libraries(racing PUBLIC ${GODOT_LIBRARY})
 
 # Source include
 include_directories(PUBLIC source)

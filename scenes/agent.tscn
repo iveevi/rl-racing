@@ -14,6 +14,16 @@ __meta__ = {
 "_edit_group_": true,
 "_edit_vertical_guides_": [  ]
 }
+spawn = null
+angle = null
+fright = null
+fleft = null
+bright = null
+bleft = null
+front = null
+back = null
+right = null
+left = null
 
 [node name="Sprite" type="Sprite" parent="."]
 scale = Vector2( 0.05, 0.05 )

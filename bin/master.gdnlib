@@ -7,9 +7,9 @@ reloadable=true
 
 [entry]
 
-X11.64="res://bin/x11/libmaster.so"
-Windows.64="res://bin/win64/libmaster.dll"
-OSX.64="res://bin/osx/libmaster.dylib"
+X11.64="res://bin/x11/libracing.so"
+Windows.64="res://bin/win64/libracing.dll"
+OSX.64="res://bin/osx/libracing.dylib"
 
 [dependencies]
 
