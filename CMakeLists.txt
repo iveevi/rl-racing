@@ -14,13 +14,17 @@ set(CMAKE_CXX_COMPILER "g++-8")
 project(agent)
 add_library(agent SHARED
 	source/agent.cpp
-	source/agent_godot.cpp
-	source/lib_agent.cpp
+)
+
+project(master)
+add_library(master SHARED
+	source/master.cpp
 )
 
 # Godot bindings
 find_library(GODOT_LIBRARY godot-cpp.linux.debug.64 REQUIRED)
 target_link_libraries(agent PUBLIC ${GODOT_LIBRARY})
+target_link_libraries(master PUBLIC ${GODOT_LIBRARY})
 
 # Source include
 include_directories(PUBLIC source)

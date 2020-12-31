@@ -1,6 +1,5 @@
 extends Node2D
 
-# AI
 onready var ai_prefab = load("res://scenes/agent.tscn");
 
 var rounds = 0;

@@ -1,5 +1,5 @@
-#ifndef CAR_H_
-#define CAR_H_
+#ifndef AGENT_H_
+#define AGENT_H_
 
 // Godot headers
 #include <GlobalConstants.hpp>
@@ -14,6 +14,8 @@
 #include <std/activation_classes.hpp>
 #include <std/optimizer_classes.hpp>
 
+#define cap(x, mn, mx) std::max(std::min(x, mx), mn);
+
 namespace godot {
 
 using namespace zhetapi;
@@ -26,6 +28,7 @@ private:
 	Vector2				ppos;
 	ml::NeuralNetwork <double>	model;
 	ml::Optimizer <double> *	cost;
+	ml::Activation <double> *	boltzmann;
 
 	// Instantiate as a Godot class
 	GODOT_CLASS(Agent, KinematicBody2D);
@@ -72,8 +75,56 @@ public:
 	static const double k_a;	// Acceleration constant
 	static const double k_b;	// Brake constant
 	static const double k_d;	// Drag/friction constant
+	
+	static const double eps;
 };
 
+// Godot standard methods
+void Agent::_register_methods()
+{
+	register_method("_ready", &Agent::_ready);
+	register_method("_process", &Agent::run);
+
+	register_property <Agent, NodePath> ("spawn", &Agent::spawn, NodePath());
+	register_property <Agent, double> ("angle", &Agent::angle, 0);
+	
+	register_property <Agent, double> ("fright", &Agent::fright, 0);
+	register_property <Agent, double> ("fleft", &Agent::fleft, 0);
+	register_property <Agent, double> ("bright", &Agent::bright, 0);
+	register_property <Agent, double> ("bleft", &Agent::bleft, 0);
+	register_property <Agent, double> ("front", &Agent::front, 0);
+	register_property <Agent, double> ("back", &Agent::back, 0);
+	register_property <Agent, double> ("right", &Agent::right, 0);
+	register_property <Agent, double> ("left", &Agent::left, 0);
+}
+
+void Agent::_ready()
+{
+	spawns = get_node(spawn)->get_child_count();
+
+	Node2D *nd = Object::cast_to <Node2D> (get_node(spawn)->get_child(0));
+
+	set_rotation(angle);
+	set_global_position(nd->get_global_position());
+
+	ppos = get_global_position();
+}
+
+}
+
+// Exporting
+extern "C" void GDN_EXPORT godot_gdnative_init(godot_gdnative_init_options *o) {
+    godot::Godot::gdnative_init(o);
+}
+
+extern "C" void GDN_EXPORT godot_gdnative_terminate(godot_gdnative_terminate_options *o) {
+    godot::Godot::gdnative_terminate(o);
+}
+
+extern "C" void GDN_EXPORT godot_nativescript_init(void *handle) {
+    godot::Godot::nativescript_init(handle);
+
+    godot::register_class <godot::Agent> ();
 }
 
 #endif

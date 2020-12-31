@@ -4,13 +4,15 @@ namespace godot {
 
 const double Agent::min_vel = -1;
 const double Agent::max_vel = 5;
-const double Agent::idle_vel = 0.5;
+const double Agent::idle_vel = 0.05;
 
 const int Agent::cycle_thresh = 10000;
 
-const double Agent::k_a = 0.00005;
+const double Agent::k_a = 0.0002;
 const double Agent::k_b = 0.997;
 const double Agent::k_d = 0.999;
+
+const double Agent::eps = 0.7;
 
 Agent::Agent()
 {
@@ -33,6 +35,7 @@ Agent::Agent()
 	}, initializer);
 
 	cost = new ml::MeanSquaredError <double> ();
+	boltzmann = new ml::SoftmaxInterval <double> ();
 
 	model.randomize();
 	model.set_cost(cost);
@@ -41,6 +44,7 @@ Agent::Agent()
 Agent::~Agent()
 {
 	delete cost;
+	delete boltzmann;
 }
 
 void Agent::rand_reset()
@@ -64,6 +68,8 @@ Vector <double> Agent::reward(const Vector <double> &r, size_t imax)
 
 	if (distance < idle_vel)
 		cycles++;
+	else
+		cycles = 0;
 
 	zhetapi::Vector <double> rt = r;
 
@@ -114,7 +120,7 @@ void Agent::run(float delta)
 	Ref <KinematicCollision2D> ref = nullptr;
 
 	// Cap the velocity from both sides
-	velocity = std::max(std::min(velocity, max_vel), min_vel);
+	velocity = cap(velocity, min_vel, max_vel);
 
 	// Move the car
 	ref = move_and_collide(
@@ -140,18 +146,38 @@ void Agent::run(float delta)
 		left
 	};
 
-	// std::cout << "state = " << st << std::endl;
 	Vector <double> rewards = model(st);
 
-	size_t mx = rewards.imax();
+	double rng = rand()/((double) RAND_MAX);
 
-	std::cout << "rewards = " << rewards << std::endl;
-	std::cout << "\tmaxi = " << mx << " [gas=" << mx/3 << ", steer=" << mx % 3 << "]" << std::endl;
+	size_t mx = 0;
+	if (rng > eps) {
+		// TODO: Fix the order of these actions
+		
+		// std::cout << "state = " << st << std::endl;
+
+		mx = rewards.imax();
+
+		// std::cout << "rewards = " << rewards << std::endl;
+		// std::cout << "\tmaxi = " << mx << " [gas=" << mx/3 << ", steer=" << mx % 3 << "]" << std::endl;
+		
+		// std::cout << "boltzmann = " << boltzmann->compute(rewards) << std::endl;
+
+		// std::cout << "\ttrue reward: " << rt << std::endl;
+
+	} else {
+		mx = rand() % 9;
+	}
+
+	// This is not the correct reward
+	Vector <double> rt = reward(rewards, mx);
+
+	// std::cout << (*cost)(rt, rewards) << std::endl;
+
+	model.train(st, rt, 0.001);
 	
 	accelerate(mx / 3);
 	steer(mx % 3);
-
-	std::cout << "\ttrue reward: " << reward(rewards, mx) << std::endl;
 
 	ppos = get_global_position();
 }

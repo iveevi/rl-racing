@@ -3,4 +3,4 @@
 cmake .
 make -j8 all
 
-mv libagent.so bin/x11/
+mv libagent.so libmaster.so bin/x11/
