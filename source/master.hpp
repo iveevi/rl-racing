@@ -11,6 +11,8 @@
 
 namespace godot {
 
+const char *p_track = "res://scenes/track.tscn";
+
 class Master : public Node2D {
 private:
 	// Instantiate as a Godot class
@@ -47,7 +49,7 @@ void Master::_ready()
 {
 	ResourceLoader *rl = ResourceLoader::get_singleton();
 
-	Ref <PackedScene> ref = rl->load("res://scenes/track.tscn");
+	Ref <PackedScene> ref = rl->load(p_track);
 
 	double xoff = 0;
 	double yoff = 0;

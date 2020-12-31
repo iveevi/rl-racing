@@ -8,6 +8,7 @@
 #include <KinematicBody2D.hpp>
 #include <KinematicCollision2D.hpp>
 #include <NodePath.hpp>
+#include <RayCast2D.hpp>
 
 // Zhetapi headers
 #include <network.hpp>
@@ -29,6 +30,9 @@ private:
 	ml::NeuralNetwork <double>	model;
 	ml::Optimizer <double> *	cost;
 	ml::Activation <double> *	boltzmann;
+
+	// Sensors
+	RayCast2D **			rays;
 
 	// Instantiate as a Godot class
 	GODOT_CLASS(Agent, KinematicBody2D);
@@ -57,6 +61,7 @@ public:
 	void rand_reset();
 
 	Vector <double> reward(const Vector <double> &, size_t);
+	Vector <double> state();
 
 	void accelerate(size_t);
 	void steer(size_t);
@@ -108,6 +113,15 @@ void Agent::_ready()
 	set_global_position(nd->get_global_position());
 
 	ppos = get_global_position();
+
+	rays = new RayCast2D *[8];
+
+	using namespace std;
+	cout << "rays:" << endl;
+	for (size_t i = 0; i < 8; i++) {
+		rays[i] = Object::cast_to <RayCast2D> (get_child(i + 2));
+		cout << "\t" << rays[i] << endl;
+	}
 }
 
 }

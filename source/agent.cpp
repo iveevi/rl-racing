@@ -14,6 +14,10 @@ const double Agent::k_d = 0.999;
 
 const double Agent::eps = 0.7;
 
+std::ofstream csv("data.csv");
+
+size_t iter = 0;
+
 Agent::Agent()
 {
 	srand(clock());
@@ -28,7 +32,7 @@ Agent::Agent()
 
 	// Load from JSON file later
 	model = ml::NeuralNetwork <double> ({
-		{8, new ml::Linear <double> ()},
+		{9, new ml::Linear <double> ()},
 		{10, new ml::Sigmoid <double> ()},
 		{10, new ml::ReLU <double> ()},
 		{9, new ml::Linear <double> ()}
@@ -39,6 +43,8 @@ Agent::Agent()
 
 	model.randomize();
 	model.set_cost(cost);
+
+	csv << "iter,error" << std::endl;
 }
 
 Agent::~Agent()
@@ -76,6 +82,20 @@ Vector <double> Agent::reward(const Vector <double> &r, size_t imax)
 	rt[imax] = distance - max_vel/2;
 
 	return rt;
+}
+
+Vector <double> Agent::state()
+{
+	return Vector <double> (9,
+		[&](size_t i) {
+			if (!i)
+				return velocity;
+
+			Vector2 other = rays[i - 1]->get_collision_point();
+
+			return (double) get_global_position().distance_to(other);
+		}
+	);
 }
 
 // Note, no reversing
@@ -135,16 +155,7 @@ void Agent::run(float delta)
 		return;
 	}
 
-	Vector <double> st = {
-		fright,
-		fleft,
-		bright,
-		bleft,
-		front,
-		back,
-		right,
-		left
-	};
+	Vector <double> st = state();
 
 	Vector <double> rewards = model(st);
 
@@ -152,19 +163,7 @@ void Agent::run(float delta)
 
 	size_t mx = 0;
 	if (rng > eps) {
-		// TODO: Fix the order of these actions
-		
-		// std::cout << "state = " << st << std::endl;
-
 		mx = rewards.imax();
-
-		// std::cout << "rewards = " << rewards << std::endl;
-		// std::cout << "\tmaxi = " << mx << " [gas=" << mx/3 << ", steer=" << mx % 3 << "]" << std::endl;
-		
-		// std::cout << "boltzmann = " << boltzmann->compute(rewards) << std::endl;
-
-		// std::cout << "\ttrue reward: " << rt << std::endl;
-
 	} else {
 		mx = rand() % 9;
 	}
@@ -173,6 +172,10 @@ void Agent::run(float delta)
 	Vector <double> rt = reward(rewards, mx);
 
 	// std::cout << (*cost)(rt, rewards) << std::endl;
+	iter++;
+
+	if (!(iter % 1000))
+		csv << iter << "," << (cost->compute(rt, rewards))[0] << std::endl;
 
 	model.train(st, rt, 0.001);
 	
