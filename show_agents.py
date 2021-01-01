@@ -16,23 +16,14 @@ if len(args) != 3:
 
     sys.exit(-1)
 
-print("dir = " + sys.argv[1])
-print("#agents = " + sys.argv[2])
-
 directory = sys.argv[1]
 agents = int(sys.argv[2])
-
-print("agents = " + str(agents))
-
-plt.style.use('fivethirtyeight')
 
 def animate(k):
     plt.cla()
 
     for i in range(0, agents):
         fpath = "results/" + directory + "/agent_" + str(i)
-
-        # print("Opening file " + fpath)
 
         data = pd.read_csv(fpath)
 

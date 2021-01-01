@@ -18,6 +18,8 @@ double Agent::epsilon = 0.9;
 
 size_t Agent::buffer_size = 10;
 
+double Agent::lambda = 0.997;
+
 Agent::Agent()
 {
 	srand(clock());

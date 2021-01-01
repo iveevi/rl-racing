@@ -45,6 +45,7 @@ extern std::vector <int> mxs;
 
 // Global model
 extern ml::NeuralNetwork <double> model;
+extern ml::NeuralNetwork <double> target;
 
 // Cost function
 extern ml::Optimizer <double> *cost;

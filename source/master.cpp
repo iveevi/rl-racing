@@ -22,6 +22,8 @@ Master::Master()
 
 	model.randomize();
 	model.set_cost(cost);
+
+	target = model;
 }
 
 Master::~Master()
@@ -86,6 +88,9 @@ void Master::_process(float delta)
 		c_episode++;
 		avg_reward = 0;
 		avg_epsilon = 0;
+		
+		if (c_episode % 50 == 0)
+			target = model;
 	}
 
 	size_t mi;
@@ -97,7 +102,9 @@ void Master::_process(float delta)
 
 			r_deltas[i] = agents[i]->reward_delta();
 
-			double total = r_deltas[i] + model(c_states[i]).max();
+			size_t imax = model(c_states[i]).imax();
+
+			double total = r_deltas[i] + Agent::lambda * target(c_states[i])[imax];
 
 			agents[i]->buffer_rewards[agents[i]->buffer_index] = total;
 
@@ -129,7 +136,7 @@ void Master::_process(float delta)
 
 				r_deltas[i] = agents[i]->reward_delta();
 
-				double total = r_deltas[i] + model.compute_no_cache(c_states[i]).max();
+				double total = r_deltas[i] + Agent::lambda * model.compute_no_cache(c_states[i]).max();
 
 				agents[i]->set_buffer_reward(total);
 

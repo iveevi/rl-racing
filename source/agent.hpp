@@ -116,6 +116,8 @@ public:
 	static double epsilon;
 
 	static size_t buffer_size;
+
+	static double lambda;		// Discount factor
 };
 
 }

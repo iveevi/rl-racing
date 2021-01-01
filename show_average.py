@@ -19,8 +19,6 @@ directory = sys.argv[1]
 
 fig, (a1, a2) = plt.subplots(2)
 
-plt.style.use('fivethirtyeight')
-
 def animate(k):
     a1.cla()
     a2.cla()
@@ -40,12 +38,12 @@ def animate(k):
     mn = min(y)
     av = mean(y)
 
-    a1.plot(x[-8:], y[-8:], label="Avergae Reward")
-    a1.plot(x[-8:], [mx] * min(8, len(y)))
-    a1.plot(x[-8:], [mn] * min(8, len(y)))
-    a1.plot(x[-8:], [av] * min(8, len(y)))
+    a1.plot(x[-20:], y[-20:], label="Avergae Reward")
+    a1.plot(x[-20:], [mx] * min(20, len(y)))
+    a1.plot(x[-20:], [mn] * min(20, len(y)))
+    a1.plot(x[-20:], [av] * min(20, len(y)))
     
-    a2.plot(x[-8:], e[-8:], label="Average Epsilon")
+    a2.plot(x[-20:], e[-20:], label="Average Epsilon")
 
     plt.xlabel("Episode")
     fig.suptitle("Averages")

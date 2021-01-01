@@ -31,6 +31,7 @@ const char *p_track = "res://scenes/track.tscn";
 
 // Model
 ml::NeuralNetwork <double> model;
+ml::NeuralNetwork <double> target;
 
 // Cost
 ml::Optimizer <double> *cost;

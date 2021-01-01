@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.14)
 
 # Set the right flags
-set(CMAKE_CXX_FLAGS "-pthread -std=c++17")
+set(CMAKE_CXX_FLAGS "-pthread -std=c++17 -Wuninitialized")
 
 # Allow dynamic linking
 SET_PROPERTY(GLOBAL PROPERTY TARGET_SUPPORTS_SHARED_LIBS TRUE)
