@@ -1,8 +1,14 @@
 {
-	"Rows": 5,
-	"Columns": 5,
-	"Threads": 1,
+	"Grid": {
+		"Rows": 1,
+		"Columns": 1
+	},
+	"Execution": {
+		"Threads": 8,
+		"Display Graphs": true
+	},
 	"Minimum Velocity": -1.0,
 	"Maximum Velocity": 15.0,
-	"Epsilon": 0.9
+	"Epsilon": 0.9,
+	"Buffer Size": 10000
 }

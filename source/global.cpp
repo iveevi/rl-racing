@@ -9,16 +9,17 @@ std::vector <Agent *> agents;
 
 // States per each agent (current and previous)
 std::vector <Vector <double>> c_states;
-std::vector <Vector <double>> p_states;
+DataSet <double> p_states;
 
 // Reward deltas
 std::vector <double> r_deltas;
 
 // Actions for each agent
-std::vector <Vector <double>> actions;
+DataSet <double> actions;
 std::vector <int> mxs;
 
 std::vector <std::queue <double>> rewards;
+std::vector <std::queue <double>> epsilons;
 std::vector <int> episodes;
 std::vector <bool> flushed;
 
@@ -36,5 +37,8 @@ ml::Optimizer <double> *cost;
 
 // Directory
 std::string dir;
+
+std::default_random_engine generator;
+std::uniform_real_distribution <double> distribution(0.0, 1.0);
 
 }

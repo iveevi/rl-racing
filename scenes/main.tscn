@@ -24,10 +24,10 @@ smoothing_enabled = true
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
 [node name="RichTextLabel" type="RichTextLabel" parent="CanvasLayer"]
-margin_left = 807.0
-margin_top = 564.0
-margin_right = 1039.0
-margin_bottom = 606.0
+margin_left = 23.0
+margin_top = 20.0
+margin_right = 363.0
+margin_bottom = 124.0
 script = ExtResource( 3 )
 __meta__ = {
 "_edit_use_anchors_": false

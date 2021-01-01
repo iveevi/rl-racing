@@ -3,8 +3,6 @@
 // Godot related functions
 namespace godot {
 
-//---------------------[METHODS]-------------------
-
 Master::Master()
 {
 	auto initializer = []() {
@@ -13,10 +11,11 @@ Master::Master()
 
 	// Load from JSON file later
 	model = ml::NeuralNetwork <double> ({
-		{9, new ml::Linear <double> ()},
+		{11, new ml::Linear <double> ()},
 		{10, new ml::Sigmoid <double> ()},
 		{10, new ml::ReLU <double> ()},
-		{9, new ml::Linear <double> ()}
+		{10, new ml::Sigmoid <double> ()},
+		{6, new ml::Linear <double> ()}
 	}, initializer);
 
 	cost = new ml::MeanSquaredError <double> ();
@@ -34,17 +33,19 @@ void Master::_init() {}
 
 Vector <double> acpy;
 
-bool launch_graph = false;
-std::vector <TextEdit *> texts;
+bool launch_graphs = false;
 
 int c_episode = 1;
 double avg_reward = 0;
+double avg_epsilon = 0;
 
 std::ofstream mout;
+
+size_t threads = 1;
 void Master::_process(float delta)
 {
-	if (!launch_graph) {
-		launch_graph = true;
+	if (!launch_graphs) {
+		launch_graphs = true;
 
 		std::string cmd;
 
@@ -64,7 +65,9 @@ void Master::_process(float delta)
 				flushed[i] = true;
 
 				avg_reward += rewards[i].front();
+				avg_epsilon += epsilons[i].front();
 				rewards[i].pop();
+				epsilons[i].pop();
 			}
 		} else {
 			c_done = false;
@@ -76,37 +79,94 @@ void Master::_process(float delta)
 			flushed[i] = false;
 
 		avg_reward /= size;
+		avg_epsilon /= size;
 
-		std::cout << "all done with episode #" << c_episode << ", rew = " << avg_reward << std::endl;
-
-		mout << c_episode << "," << avg_reward << std::endl;
+		mout << c_episode << "," << avg_reward << "," << avg_epsilon << std::endl;
 
 		c_episode++;
 		avg_reward = 0;
+		avg_epsilon = 0;
 	}
 
+	size_t mi;
 	// Separate loops or single loop?
-	for (size_t i = 0; i < size; i++) {
-		agents[i]->cache_state();
+	
+	if (threads <= 1) {
+		for (size_t i = 0; i < size; i++) {
+			agents[i]->cache_state();
 
-		r_deltas[i] = agents[i]->reward_delta();
+			r_deltas[i] = agents[i]->reward_delta();
 
-		double total = r_deltas[i] + model(c_states[i]).max();
+			double total = r_deltas[i] + model(c_states[i]).max();
 
-		acpy = actions[i];
-		acpy[mxs[i]] = total;
+			agents[i]->buffer_rewards[agents[i]->buffer_index] = total;
 
-		model.train(p_states[i], acpy, 0.0001);
+			// Method
+			agents[i]->buffer_index = (agents[i]->buffer_index + 1) % Agent::buffer_size;
 
-		actions[i] = model(c_states[i]);
+			/* acpy = actions[i];
+			acpy[mxs[i]] = total; */
+			actions[i][mxs[i]] = total;
+		}
 
-		mxs[i] = agents[i]->apply_action(delta);
-		
-		std::string str = "\n" + std::to_string(agents[i]->get_velocity());
+		// Train the model on the previous state (critical section)
+		model.train <10> (p_states, actions, 0.00001);
 
-		String text = str.c_str();
+		// Generate the next actions
+		for (size_t i = 0; i < size; i++) {
+			actions[i] = model(c_states[i]);
 
-		texts[i]->set_text(text);
+			mxs[i] = agents[i]->apply_action(delta);
+		}
+	} else {
+		// Instead of multithreading like this, only multithread the
+		// model computation
+
+		// Define outside
+		auto t1 = [&](size_t offset) {
+			for (size_t i = offset; i < size; i += threads) {
+				agents[i]->cache_state();
+
+				r_deltas[i] = agents[i]->reward_delta();
+
+				double total = r_deltas[i] + model.compute_no_cache(c_states[i]).max();
+
+				agents[i]->set_buffer_reward(total);
+
+				// Method
+				agents[i]->increment_buffer_index();
+
+				actions[i][mxs[i]] = total;
+			}
+		};
+
+		auto t2 = [&](size_t offset) {
+			// Generate the next actions
+			for (size_t i = offset; i < size; i += threads) {
+				actions[i] = model.compute_no_cache(c_states[i]);
+			}
+		};
+
+		std::vector <std::thread> army;
+
+		for (int i = 0; i < threads; i++)
+			army.push_back(std::thread(t1, i));
+
+		for (int i = 0; i < threads; i++)
+			army[i].join();
+
+		// Train the model on the previous state (critical section)
+		model.train <10> (p_states, actions, 0.00001);
+
+		army.clear();
+		for (int i = 0; i < threads; i++)
+			army.push_back(std::thread(t2, i));
+
+		for (int i = 0; i < threads; i++)
+			army[i].join();
+
+		for (size_t i = 0; i < size; i++)
+			mxs[i] = agents[i]->apply_action(delta);
 	}
 }
 
@@ -118,8 +178,11 @@ void Master::_ready()
 	// Loading run configuration [new function]
 	config >> json;
 
-	rows = json["Rows"];
-	cols = json["Columns"];
+	rows = json["Grid"]["Rows"];
+	cols = json["Grid"]["Columns"];
+	threads = json["Execution"]["Threads"];
+
+	Agent::buffer_size = json["Buffer Size"];
 
 	// Create folder [new function]
 	system("mkdir -p results");
@@ -140,21 +203,11 @@ void Master::_ready()
 	std::string fpath = "results/" + dir + "/main";
 
 	mout.open(fpath);
-	mout << "episode,average" << std::endl;
-
-	// Hard code for now, read from a file later
-	// rows = 5;
-	// cols = 5;
+	mout << "episode,average,epsilon" << std::endl;
 
 	ResourceLoader *rl = ResourceLoader::get_singleton();
 
 	Ref <PackedScene> ref = rl->load(p_track);
-
-	using namespace std;
-	cout << "ref: " << boolalpha << ref->can_instance() << endl;
-
-	cout << "rows = " << rows << endl;
-	cout << "cols = " << cols << endl;
 
 	double xoff = 0;
 	double yoff = 0;
@@ -167,18 +220,6 @@ void Master::_ready()
 			Node2D *track = Object::cast_to <Node2D> (node);
 
 			track->set_position(Vector2(xoff, yoff));
-
-			node = track->get_node("stats");
-
-			TextEdit *tedit = Object::cast_to <TextEdit> (node);
-
-			texts.push_back(tedit);
-
-			std::string str = "\n0";
-
-			String text = str.c_str();
-
-			tedit->set_text(text);
 
 			add_child(track);
 

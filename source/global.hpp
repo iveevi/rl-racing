@@ -3,6 +3,7 @@
 
 // C++ standard headers
 #include <queue>
+#include <random>
 
 // Zhetapi headers
 #include <network.hpp>
@@ -34,6 +35,7 @@ extern std::vector <double> r_deltas;
 
 // Queue of episode results
 extern std::vector <std::queue <double>> rewards;
+extern std::vector <std::queue <double>> epsilons;
 extern std::vector <int> episodes;
 extern std::vector <bool> flushed;
 
@@ -49,6 +51,9 @@ extern ml::Optimizer <double> *cost;
 
 // Running directory
 extern std::string dir;
+
+extern std::default_random_engine generator;
+extern std::uniform_real_distribution <double> distribution;
 
 }
 

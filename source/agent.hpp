@@ -42,15 +42,32 @@ private:
 	bool brake;
 	bool idle;
 
+	bool crashed;
+
+	std::vector <Vector <double>>	states;
+
 	// Sensors
 	RayCast2D **			rays;
 
 	// Index
 	size_t				id;
 
+	// Exploration strategy
+	double				eps;
+	size_t				runs;
+	bool				explt;
+	double				meps;
+	double				r_explt;
+	double				r_explr;
+
 	// Instantiate as a Godot class
 	GODOT_CLASS(Agent, KinematicBody2D);
 public:
+	size_t				buffer_index;
+	std::vector <double>		buffer_rewards;
+	std::vector <int>		buffer_indexes;
+	std::vector <Vector <double>>	buffer_actions;
+	
 	// Accessible from GDScript classes
 	NodePath spawn;
 
@@ -77,23 +94,28 @@ public:
 
 	void accelerate(size_t, double);
 	void steer(size_t);
+
+	void increment_buffer_index();
+	void set_buffer_reward(double);
 	
 	void _init();
 
 	void _ready();
 	void run(float delta);		// Main function
 
-	static const double min_vel;
-	static const double max_vel;
-	static const double idle_vel;	// Maximum velocity considered to be "idle"
+	static double min_vel;
+	static double max_vel;
+	static double idle_vel;		// Maximum velocity considered to be "idle"
 
-	static const int cycle_thresh;	// Number of "idle" cycles before reseting
+	static int cycle_thresh;	// Number of "idle" cycles before reseting
 	
-	static const double k_a;	// Acceleration constant
-	static const double k_b;	// Brake constant
-	static const double k_d;	// Drag/friction constant
+	static double k_a;		// Acceleration constant
+	static double k_b;		// Brake constant
+	static double k_d;		// Drag/friction constant
 	
-	static const double eps;
+	static double epsilon;
+
+	static size_t buffer_size;
 };
 
 }

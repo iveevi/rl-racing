@@ -68,8 +68,68 @@ rotation = -1.54807
 script = null
 
 [node name="spawn-point13" parent="spawns" instance=ExtResource( 2 )]
-position = Vector2( -113.648, 139.874 )
+position = Vector2( -110.199, 137 )
 rotation = 3.22355
+script = null
+
+[node name="spawn-point14" parent="spawns" instance=ExtResource( 2 )]
+position = Vector2( -139.514, 143.898 )
+rotation = 3.8411
+script = null
+
+[node name="spawn-point15" parent="spawns" instance=ExtResource( 2 )]
+position = Vector2( -113.648, 53.6538 )
+rotation = 4.07048
+script = null
+
+[node name="spawn-point16" parent="spawns" instance=ExtResource( 2 )]
+position = Vector2( 0.737541, 15.1421 )
+rotation = 5.3196
+script = null
+
+[node name="spawn-point17" parent="spawns" instance=ExtResource( 2 )]
+position = Vector2( 25.454, 130.102 )
+rotation = 5.3196
+script = null
+
+[node name="spawn-point18" parent="spawns" instance=ExtResource( 2 )]
+position = Vector2( 211.69, 165.165 )
+rotation = 4.09675
+script = null
+
+[node name="spawn-point19" parent="spawns" instance=ExtResource( 2 )]
+position = Vector2( 264.572, 52.5042 )
+rotation = 8.30935
+script = null
+
+[node name="spawn-point20" parent="spawns" instance=ExtResource( 2 )]
+position = Vector2( 120.296, 32.9609 )
+rotation = 9.56083
+script = null
+
+[node name="spawn-point21" parent="spawns" instance=ExtResource( 2 )]
+position = Vector2( 238.131, -122.81 )
+rotation = 9.56083
+script = null
+
+[node name="spawn-point22" parent="spawns" instance=ExtResource( 2 )]
+position = Vector2( 148.462, -202.708 )
+rotation = 7.14048
+script = null
+
+[node name="spawn-point23" parent="spawns" instance=ExtResource( 2 )]
+position = Vector2( 107.076, -87.7474 )
+rotation = 7.55094
+script = null
+
+[node name="spawn-point24" parent="spawns" instance=ExtResource( 2 )]
+position = Vector2( -209.64, -48.6609 )
+rotation = 6.89239
+script = null
+
+[node name="spawn-point25" parent="spawns" instance=ExtResource( 2 )]
+position = Vector2( -262.522, 58.2522 )
+rotation = 5.87295
 script = null
 
 [node name="image" type="Sprite" parent="."]
@@ -87,12 +147,3 @@ polygon = PoolVector2Array( 132.445, 11.4085, 243.728, -112.89, 261.792, -139.88
 [node name="track-view" type="Camera2D" parent="."]
 position = Vector2( 0, -20 )
 zoom = Vector2( 10, 10 )
-
-[node name="stats" type="TextEdit" parent="."]
-margin_left = -340.0
-margin_top = -225.0
-margin_right = -240.0
-margin_bottom = -75.0
-__meta__ = {
-"_edit_use_anchors_": false
-}

@@ -17,10 +17,13 @@ if len(args) != 2:
 
 directory = sys.argv[1]
 
+fig, (a1, a2) = plt.subplots(2)
+
 plt.style.use('fivethirtyeight')
 
 def animate(k):
-    plt.cla()
+    a1.cla()
+    a2.cla()
 
     fpath = "results/" + directory + "/main"
 
@@ -28,6 +31,7 @@ def animate(k):
 
     x = data['episode']
     y = data['average']
+    e = data['epsilon']
 
     if len(y) <= 0:
         return
@@ -36,13 +40,18 @@ def animate(k):
     mn = min(y)
     av = mean(y)
 
-    plt.plot(x[-8:], y[-8:], label="Mean Reward")
-    plt.plot(x[-8:], [mx] * min(8, len(y)), label="Maximum of Mean")
-    plt.plot(x[-8:], [mn] * min(8, len(y)), label="Minimum of Mean")
-    plt.plot(x[-8:], [av] * min(8, len(y)), label="Average of Mean")
+    a1.plot(x[-8:], y[-8:], label="Avergae Reward")
+    a1.plot(x[-8:], [mx] * min(8, len(y)))
+    a1.plot(x[-8:], [mn] * min(8, len(y)))
+    a1.plot(x[-8:], [av] * min(8, len(y)))
+    
+    a2.plot(x[-8:], e[-8:], label="Average Epsilon")
 
     plt.xlabel("Episode")
-    plt.title("Average Rewards")
+    fig.suptitle("Averages")
+
+    a1.legend()
+    a2.legend()
 
     plt.tight_layout()
 
