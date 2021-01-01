@@ -2,6 +2,9 @@
 #define MASTER_H_
 
 // C++ standard headers
+#include <ctime>
+#include <iomanip>
+#include <iostream>
 #include <vector>
 
 // Godot headers
@@ -12,18 +15,14 @@
 #include <ResourceLoader.hpp>
 #include <TextEdit.hpp>
 
+// Zhetapi headers
+#include <json/json.hpp>
+
 // Source headers
 #include <agent.hpp>
+#include <global.hpp>
 
 namespace godot {
-
-// List of all agents
-extern std::vector <Agent *> agents;
-
-extern int i;
-
-// Path to the track scene
-extern const char *p_track;
 
 class Master : public Node2D {
 private:
@@ -43,7 +42,7 @@ public:
 	void _init();
 
 	void _ready();
-	void _process();
+	void _process(float);
 };
 
 }

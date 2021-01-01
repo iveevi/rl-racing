@@ -2,6 +2,7 @@
 *.os
 *.import
 bin/x11/
+results/
 .import/
 .sconsign.dblite
 CMakeCache.txt

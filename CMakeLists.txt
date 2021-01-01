@@ -14,7 +14,9 @@ set(CMAKE_CXX_COMPILER "g++-8")
 project(racing)
 add_library(racing SHARED
 	source/agent.cpp
+	source/export.cpp
 	source/master.cpp
+	source/global.cpp
 	source/lib.cpp
 )
 

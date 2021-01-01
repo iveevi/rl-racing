@@ -3,48 +3,148 @@
 // Godot related functions
 namespace godot {
 
-// List of all agents
-std::vector <Agent *> agents;
+//---------------------[METHODS]-------------------
 
-// Path to the track scene
-const char *p_track = "res://scenes/track.tscn";
-
-Master::Master() {}
-
-Master::~Master() {}
-
-void Master::_init()
+Master::Master()
 {
-	using namespace std;
-	std::cout << "Setting:" << endl;
-	rows = 1;
-	cols = 1;
+	auto initializer = []() {
+		return 0.5 - (rand()/(double) RAND_MAX);
+	};
+
+	// Load from JSON file later
+	model = ml::NeuralNetwork <double> ({
+		{9, new ml::Linear <double> ()},
+		{10, new ml::Sigmoid <double> ()},
+		{10, new ml::ReLU <double> ()},
+		{9, new ml::Linear <double> ()}
+	}, initializer);
+
+	cost = new ml::MeanSquaredError <double> ();
+
+	model.randomize();
+	model.set_cost(cost);
 }
 
-void Master::_process()
+Master::~Master()
 {
-	using namespace std;
-	cout << "agents:" << endl;
-	for (auto ag : agents)
-		cout << "\t" << ag << endl;
+	delete cost;
 }
 
-// Godot standard methods
-void Master::_register_methods()
-{
-	register_method("_init", &Master::_init);
-	register_method("_ready", &Master::_ready);
-	register_method("_process", &Master::_process);
+void Master::_init() {}
 
-	register_property <Master, int> ("rows", &Master::rows, 1);
-	register_property <Master, int> ("cols", &Master::cols, 1);
+Vector <double> acpy;
+
+bool launch_graph = false;
+std::vector <TextEdit *> texts;
+
+int c_episode = 1;
+double avg_reward = 0;
+
+std::ofstream mout;
+void Master::_process(float delta)
+{
+	if (!launch_graph) {
+		launch_graph = true;
+
+		std::string cmd;
+
+		cmd = "python show_agents.py " + dir + " " + std::to_string(size) + " &";
+
+		system(cmd.c_str());
+		
+		cmd = "python show_average.py " + dir + " &";
+		
+		system(cmd.c_str());
+	}
+
+	bool c_done = true;
+	for (size_t i = 0; i < size; i++) {
+		if (episodes[i] > c_episode) {
+			if (!flushed[i]) {
+				flushed[i] = true;
+
+				avg_reward += rewards[i].front();
+				rewards[i].pop();
+			}
+		} else {
+			c_done = false;
+		}
+	}
+
+	if (c_done) {
+		for (size_t i = 0; i < size; i++)
+			flushed[i] = false;
+
+		avg_reward /= size;
+
+		std::cout << "all done with episode #" << c_episode << ", rew = " << avg_reward << std::endl;
+
+		mout << c_episode << "," << avg_reward << std::endl;
+
+		c_episode++;
+		avg_reward = 0;
+	}
+
+	// Separate loops or single loop?
+	for (size_t i = 0; i < size; i++) {
+		agents[i]->cache_state();
+
+		r_deltas[i] = agents[i]->reward_delta();
+
+		double total = r_deltas[i] + model(c_states[i]).max();
+
+		acpy = actions[i];
+		acpy[mxs[i]] = total;
+
+		model.train(p_states[i], acpy, 0.0001);
+
+		actions[i] = model(c_states[i]);
+
+		mxs[i] = agents[i]->apply_action(delta);
+		
+		std::string str = "\n" + std::to_string(agents[i]->get_velocity());
+
+		String text = str.c_str();
+
+		texts[i]->set_text(text);
+	}
 }
 
+nlohmann::json json;
+
+std::ifstream config("config.json");
 void Master::_ready()
 {
+	// Loading run configuration [new function]
+	config >> json;
+
+	rows = json["Rows"];
+	cols = json["Columns"];
+
+	// Create folder [new function]
+	system("mkdir -p results");
+
+	auto t = time(nullptr);
+	auto lt = *std::localtime(&t);
+
+	std::ostringstream oss;
+
+	oss << "run_" << std::put_time(&lt, "%m-%d-%Y:%H:%M:%S");
+
+	dir = oss.str();
+
+	std::string cmd = "mkdir results/" + dir;
+
+	system(cmd.c_str());
+
+	std::string fpath = "results/" + dir + "/main";
+
+	mout.open(fpath);
+	mout << "episode,average" << std::endl;
+
 	// Hard code for now, read from a file later
-	rows = 1;
-	cols = 1;
+	// rows = 5;
+	// cols = 5;
 
 	ResourceLoader *rl = ResourceLoader::get_singleton();
 
@@ -72,7 +172,9 @@ void Master::_ready()
 
 			TextEdit *tedit = Object::cast_to <TextEdit> (node);
 
-			std::string str = "\n(" + std::to_string(i + 1) + ", " + std::to_string(j + 1) + ")";
+			texts.push_back(tedit);
+
+			std::string str = "\n0";
 
 			String text = str.c_str();
 

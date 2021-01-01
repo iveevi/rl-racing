@@ -18,6 +18,9 @@
 #include <std/activation_classes.hpp>
 #include <std/optimizer_classes.hpp>
 
+// Source headers
+#include <global.hpp>
+
 #define cap(x, mn, mx) std::max(std::min(x, mx), mn);
 
 namespace godot {
@@ -30,30 +33,28 @@ private:
 	int				cycles;
 	double				velocity;
 	Vector2				ppos;
-	ml::NeuralNetwork <double>	model;
-	ml::Optimizer <double> *	cost;
-	ml::Activation <double> *	boltzmann;
+
+	std::ofstream			csv;
+	size_t				episode;
+
+	double				rt;
+
+	bool brake;
+	bool idle;
 
 	// Sensors
 	RayCast2D **			rays;
 
+	// Index
+	size_t				id;
+
 	// Instantiate as a Godot class
 	GODOT_CLASS(Agent, KinematicBody2D);
-
 public:
 	// Accessible from GDScript classes
 	NodePath spawn;
 
 	double angle;
-
-	double fright;
-	double fleft;
-	double bright;
-	double bleft;
-	double front;
-	double back;
-	double right;
-	double left;
 	
 	// Methods
 	static void _register_methods();
@@ -63,10 +64,18 @@ public:
 
 	void rand_reset();
 
-	Vector <double> reward(const Vector <double> &, size_t);
-	Vector <double> state();
+	double get_velocity() const {return velocity;}
 
-	void accelerate(size_t);
+	double reward_delta();
+	Vector <double> reward(const Vector <double> &, size_t);
+
+	void cache_state();
+	size_t apply_action(double);	// Returns the action index
+	void move(size_t, double);
+
+	Vector <double> get_state();
+
+	void accelerate(size_t, double);
 	void steer(size_t);
 	
 	void _init();
@@ -86,9 +95,6 @@ public:
 	
 	static const double eps;
 };
-
-// Import the agent list from master
-extern std::vector <Agent *> agents;
 
 }
 
