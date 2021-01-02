@@ -1,14 +1,15 @@
 {
 	"Grid": {
-		"Rows": 1,
-		"Columns": 1
+		"Rows": 3,
+		"Columns": 3
 	},
 	"Execution": {
-		"Threads": 8,
+		"Threads": 10,
 		"Display Graphs": true
 	},
 	"Minimum Velocity": -1.0,
 	"Maximum Velocity": 15.0,
 	"Epsilon": 0.9,
-	"Buffer Size": 10000
+	"Experience Batch Size": 500,
+	"Replay Buffer Size": 10000
 }

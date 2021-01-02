@@ -1,6 +1,36 @@
 #include <global.hpp>
 
-namespace godot {
+// Replay buffer variables and operations
+experience *replay_buffer;
+
+size_t replay_buffer_index = 0;
+size_t replay_buffer_size = 0;
+
+bool full = false;
+
+void push(const experience &exp)
+{
+	replay_buffer[replay_buffer_index] = exp;
+
+	replay_buffer_index = (replay_buffer_index + 1) % replay_buffer_size;
+
+	if (!full && !replay_buffer_index)
+		full = true;
+}
+
+std::vector <experience> sample_batch(size_t batch_size)
+{
+	std::vector <experience> batch(batch_size, experience::def());
+
+	size_t start_index = rand() % (replay_buffer_size - batch_size + 1);
+	size_t end_index = start_index + batch_size;
+
+	size_t k = 0;
+	for (size_t i = start_index; i < end_index; i++)
+		batch[k++] = replay_buffer[i];
+
+	return batch;
+}
 
 //--------------------[CONSTANTS]-----------------
 
@@ -41,5 +71,3 @@ std::string dir;
 
 std::default_random_engine generator;
 std::uniform_real_distribution <double> distribution(0.0, 1.0);
-
-}

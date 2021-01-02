@@ -1,8 +1,5 @@
 #include <master.hpp>
 
-// Godot related functions
-namespace godot {
-
 Master::Master()
 {
 	auto initializer = []() {
@@ -44,8 +41,13 @@ double avg_epsilon = 0;
 std::ofstream mout;
 
 size_t threads = 1;
+
+size_t batch_size;
+
+std::ofstream fout("output");
 void Master::_process(float delta)
 {
+	// Put inside a method
 	if (!launch_graphs) {
 		launch_graphs = true;
 
@@ -60,6 +62,7 @@ void Master::_process(float delta)
 		system(cmd.c_str());
 	}
 
+	// Method
 	bool c_done = true;
 	for (size_t i = 0; i < size; i++) {
 		if (episodes[i] > c_episode) {
@@ -88,92 +91,50 @@ void Master::_process(float delta)
 		c_episode++;
 		avg_reward = 0;
 		avg_epsilon = 0;
-		
+
 		if (c_episode % 50 == 0)
 			target = model;
 	}
 
-	size_t mi;
-	// Separate loops or single loop?
-	
-	if (threads <= 1) {
-		for (size_t i = 0; i < size; i++) {
-			agents[i]->cache_state();
+	// Real computation (Q learning loop)
+	for (size_t i = 0; i < size; i++)
+		agents[i]->step(delta);
 
-			r_deltas[i] = agents[i]->reward_delta();
+	using namespace std;
+	if (full) {
+		//fout << "Buffer is full!" << endl;
 
-			size_t imax = model(c_states[i]).imax();
+		std::vector <experience> batch = sample_batch(batch_size);
 
-			double total = r_deltas[i] + Agent::lambda * target(c_states[i])[imax];
+		DataSet <double> ins;
+		DataSet <double> outs;
+		for (auto e : batch) {
+			ins.push_back(e.state);
 
-			agents[i]->buffer_rewards[agents[i]->buffer_index] = total;
+			double rt = e.reward;
 
-			// Method
-			agents[i]->buffer_index = (agents[i]->buffer_index + 1) % Agent::buffer_size;
+			if (!e.done) {
+				size_t mx = model(e.transition).imax();
 
-			/* acpy = actions[i];
-			acpy[mxs[i]] = total; */
-			actions[i][mxs[i]] = total;
+				rt += Agent::lambda * target(e.transition)[mx];
+			}
+
+			/*
+			fout << "\tExperience:" << endl;
+			fout << "\t\ts = " << e.state << endl;
+			fout << "\t\ta = " << e.action << endl;
+			fout << "\t\ti = " << e.mx << endl;
+			fout << "\t\ts' = " << e.transition << endl;
+			fout << "\t\tr = " << e.reward << endl;
+			fout << "\t\trt = " << rt << endl;
+			fout << "\t\tat = " << e.action << endl;
+			fout << "\t\tdone = " << boolalpha << e.done << endl; */
+			e.action[e.mx] = rt;
+
+			outs.push_back(e.action);
 		}
 
-		// Train the model on the previous state (critical section)
-		model.train <10> (p_states, actions, 0.00001);
-
-		// Generate the next actions
-		for (size_t i = 0; i < size; i++) {
-			actions[i] = model(c_states[i]);
-
-			mxs[i] = agents[i]->apply_action(delta);
-		}
-	} else {
-		// Instead of multithreading like this, only multithread the
-		// model computation
-
-		// Define outside
-		auto t1 = [&](size_t offset) {
-			for (size_t i = offset; i < size; i += threads) {
-				agents[i]->cache_state();
-
-				r_deltas[i] = agents[i]->reward_delta();
-
-				double total = r_deltas[i] + Agent::lambda * model.compute_no_cache(c_states[i]).max();
-
-				agents[i]->set_buffer_reward(total);
-
-				// Method
-				agents[i]->increment_buffer_index();
-
-				actions[i][mxs[i]] = total;
-			}
-		};
-
-		auto t2 = [&](size_t offset) {
-			// Generate the next actions
-			for (size_t i = offset; i < size; i += threads) {
-				actions[i] = model.compute_no_cache(c_states[i]);
-			}
-		};
-
-		std::vector <std::thread> army;
-
-		for (int i = 0; i < threads; i++)
-			army.push_back(std::thread(t1, i));
-
-		for (int i = 0; i < threads; i++)
-			army[i].join();
-
-		// Train the model on the previous state (critical section)
-		model.train <10> (p_states, actions, 0.00001);
-
-		army.clear();
-		for (int i = 0; i < threads; i++)
-			army.push_back(std::thread(t2, i));
-
-		for (int i = 0; i < threads; i++)
-			army[i].join();
-
-		for (size_t i = 0; i < size; i++)
-			mxs[i] = agents[i]->apply_action(delta);
+		model.train <10> (ins, outs, 2.5e-4);
 	}
 }
 
@@ -189,7 +150,12 @@ void Master::_ready()
 	cols = json["Grid"]["Columns"];
 	threads = json["Execution"]["Threads"];
 
-	Agent::buffer_size = json["Buffer Size"];
+	batch_size = json["Experience Batch Size"];
+
+	replay_buffer_size = json["Replay Buffer Size"];
+	replay_buffer_index = 0;
+
+	replay_buffer = new experience[replay_buffer_size];
 
 	// Create folder [new function]
 	system("mkdir -p results");
@@ -250,6 +216,4 @@ void Master::_ready()
 				xoff/2 - 5000,
 				3500 * cols - 5000
 	));
-}
-
 }

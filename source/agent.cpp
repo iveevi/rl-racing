@@ -1,7 +1,5 @@
 #include <agent.hpp>
 
-namespace godot {
-
 double Agent::min_vel = -1;
 double Agent::max_vel = 15;
 double Agent::idle_vel = 0.05;
@@ -12,11 +10,6 @@ int Agent::cycle_thresh = 1000;
 double Agent::k_a = 10;
 double Agent::k_b = 0.997;
 double Agent::k_d = 0.999;
-
-// Make a per-agent property
-double Agent::epsilon = 0.9;
-
-size_t Agent::buffer_size = 10;
 
 double Agent::lambda = 0.997;
 
@@ -29,195 +22,71 @@ Agent::Agent()
 	velocity = 0;
 	rt = 0;
 
-	meps = 0.01;
 	eps = 1.0;
-	runs = 0;
-	explt = false;
-	r_explt = 0;
-	r_explr = 0;
 }
 
 Agent::~Agent() {}
 
-void Agent::increment_buffer_index()
+void Agent::step(double delta)
 {
-	buffer_index = (buffer_index + 1) % buffer_size;
-}
+	std::pair <size_t, Vector <double>> action = get_action();
 
-void Agent::set_buffer_reward(double new_reward)
-{
-	buffer_rewards[buffer_index] = new_reward;
-}
+	bool done = move(action.first, delta);
 
-void Agent::_init() {rt = 0;}
+	previous_state = current_state;
 
-void Agent::rand_reset()
-{
-	int index = rand() % spawns;
+	current_state = get_state();
+
+	double reward = get_reward();
+
+	rt += reward;
 	
-	Node2D *nd = Object::cast_to <Node2D> (get_node(spawn)->get_child(index));
-	
-	set_rotation_degrees(90 + nd->get_rotation_degrees());
-	set_global_position(nd->get_global_position());
+	experience exp {
+		previous_state,
+		action.second,
+		action.first,
+		current_state,
+		reward,
+		done
+	};
 
-	ppos = get_global_position();
-
-	rewards[id].push(rt);
-	epsilons[id].push((explt) ? meps : eps);
-	episodes[id]++;
-
-	csv << episode++ << "," << rt << std::endl;
-
-	// Determine next episodes setup
-	using namespace std;
-	runs++;
-	if (explt)
-		r_explt += rt;
-	else
-		r_explr += rt;
-
-	if (explt) {
-		if (runs % 20 == 0) {
-			// Store the constant in the JSON file
-			if (r_explt > 1.1 * r_explr) {
-				epsilon = cap(epsilon - 0.01, 0.01, 1.0)
-			} else {
-				epsilon = cap(epsilon + 0.01, 0.01, 1.0)
-			}
-
-			r_explt = 0;
-			r_explr = 0;
-
-			explt = false;
-			runs = 0;
-		}
-	} else {
-		if (runs % 15 == 0) {
-			explt = true;
-		}
-	}
-
-	// TODO: Decrease or increase epsilon
-
-	cycles = 0;
-	velocity = 0;
-	rt = 0;
-
-	// Train on the replay buffer
-	buffer_rewards[buffer_index] = 0;
-
-	DataSet <double> ins;
-	DataSet <double> outs;
-
-	size_t e;
-	for (size_t i = 0; i < buffer_size; i++) {
-		if (buffer_indexes[i] < 0)
-			continue;
-		
-		e = (i + buffer_size - buffer_size) % buffer_size;
-		buffer_rewards[i] -= 100 * pow(0.97, e);
-
-		buffer_actions[i][buffer_indexes[i]] = buffer_rewards[i];
-
-		ins.push_back(states[i]);
-		outs.push_back(buffer_actions[i]);
-	}
-
-	model.train <10> (ins, outs, 0.00025);
-
-	buffer_indexes.assign(buffer_size, -1);
-	buffer_index = 0;
-
-	crashed = true;
+	push(exp);
 }
 
-double Agent::reward_delta()
+double Agent::get_reward()
 {
 	if (crashed) {
 		crashed = false;
 
-		return -100;
+		return -200;
 	}
-	
-	if (velocity < idle_vel)
-		cycles++;
-	else
-		cycles = 0;
 
-	// Make more complicated later
-	double r = velocity;
+	if (rewarded) {
+		rewarded = false;
 
-		/* + (brake ? -0.0015 : 0) do not penalize idle and/or braking
-		+ (idle ? -0.0005 : 0); */
+		return 100;
+	}
 
-	rt += r;
-
-	return r;
+	return 0;
 }
 
-Vector <double> Agent::reward(const Vector <double> &r, size_t imax)
+std::pair <size_t, Vector <double>> Agent::get_action()
 {
-	double distance = get_global_position().distance_to(ppos);
+	Vector <double> Q_values = model(current_state);
 
-	if (distance < idle_vel)
-		cycles++;
-	else
-		cycles = 0;
-
-	zhetapi::Vector <double> rt = r;
-
-	rt[imax] = distance - max_vel/2;
-
-	return rt;
-}
-
-void Agent::cache_state()
-{
-	p_states[id] = c_states[id];
-
-	c_states[id] = Vector <double> (11,
-		[&](size_t i) {
-			switch (i) {
-			case 0:
-				return velocity;
-			case 1:
-				return velocity * cos(get_rotation());
-			case 2:
-				return velocity * sin(get_rotation());
-			default:
-				Vector2 other = rays[i - 3]->get_collision_point();
-
-				return (double) get_global_position().distance_to(other);
-			}
-		}
-	);
-
-	states[buffer_index] = c_states[id];
-}
-
-size_t Agent::apply_action(double delta)
-{
 	size_t mx = 0;
 
-	// Change to uniform distribution
 	double rnd = distribution(generator);
 
-	double e = (explt) ? meps : eps;
-
-	if (rnd > e)
-		mx = actions[id].imax();
+	if (rnd > eps)
+		mx = Q_values.imax();
 	else
 		mx = rand() % 6;
 
-	buffer_actions[buffer_index] = actions[id];
-	buffer_indexes[buffer_index] = mx;
-
-	move(mx, delta);
-
-	return mx;
+	return {mx, Q_values};
 }
 
-void Agent::move(size_t mx, double delta)
+bool Agent::move(size_t mx, double delta)
 {
 	accelerate(mx / 3, delta);
 	steer(mx % 3);
@@ -232,11 +101,62 @@ void Agent::move(size_t mx, double delta)
 				velocity * sin(get_rotation())
 	));
 
+	using namespace std;
 	if (ref.ptr() || cycles >= cycle_thresh) {
 		rand_reset();
 
-		return;
+		crashed = true;
+
+		return true;
 	}
+
+	rewarded = passed_gate();
+
+	return false;
+}
+
+bool Agent::passed_gate() const
+{
+	for (size_t i = 0; i < gate_size; i++) {
+		if (gate_list[i]->overlaps_body(this)) {
+			if (!gate_passed[i]) {
+				gate_passed[i] = true;
+				return true;
+			}
+		} else {
+			gate_passed[i] = false;
+		}
+	}
+
+	return false;
+}
+
+//=====================================
+void Agent::_init() {rt = 0;}
+
+void Agent::rand_reset()
+{
+	int index = rand() % spawns;
+	
+	Node2D *nd = Object::cast_to <Node2D> (get_node(spawn)->get_child(index));
+	
+	set_rotation_degrees(90 + nd->get_rotation_degrees());
+	set_global_position(nd->get_global_position());
+
+	ppos = get_global_position();
+
+	// Method/function
+	rewards[id].push(rt);
+	epsilons[id].push(eps);
+	episodes[id]++;
+
+	csv << episode++ << "," << rt << std::endl;
+
+	eps = cap(eps - 1e-3, 0.001, 1.0);
+
+	cycles = 0;
+	velocity = 0;
+	rt = 0;
 }
 
 Vector <double> Agent::get_state()
@@ -299,17 +219,7 @@ void Agent::steer(size_t i)
 
 void Agent::_ready()
 {
-	// Buffer
-	
-	// Assume that an all 0 state is an "empty" or "null" state
-	states.assign(buffer_size, Vector <double> (11, 0.0));
-	buffer_actions.assign(buffer_size, Vector <double> (6, 0.0));
-	buffer_rewards.assign(buffer_size, 0);
-	buffer_indexes.assign(buffer_size, -1);
-
-	buffer_index = 0;
-
-	// Rest
+	// Reset
 	spawns = get_node(spawn)->get_child_count();
 
 	Node2D *nd = Object::cast_to <Node2D> (get_node(spawn)->get_child(0));
@@ -322,24 +232,39 @@ void Agent::_ready()
 	rays = new RayCast2D *[8];
 	for (size_t i = 0; i < 8; i++)
 		rays[i] = Object::cast_to <RayCast2D> (get_child(i + 2));
+
+	// Gates
+	Node *gate_node = get_node(gates);
+
+	gate_size = gate_node->get_child_count();
+
+	gate_passed = new bool [gate_size];
+	gate_list = new Area2D *[gate_size];
+
+	for (size_t i = 0; i < gate_size; i++) {
+		gate_passed[i] = false;
+		gate_list[i] = Object::cast_to <Area2D> (gate_node->get_child(i));
+	}
 	
+	//==============================================================
 	id = size++;
 	agents.push_back(this);
-	c_states.push_back(get_state());
-	p_states.push_back(get_state());
-	r_deltas.push_back(0);
-	mxs.push_back(0);
+
+	// Put this method into the master _ready function
 	rewards.push_back(std::queue <double> ());
 	epsilons.push_back(std::queue <double> ());
 	episodes.push_back(1);
 	flushed.push_back(false);
-	actions.push_back(Vector <double> (6, 0.0));
 
 	std::string fpath = "results/" + dir + "/agent_" + std::to_string(id);
 	csv.open(fpath);
 	csv << "episode,reward" << std::endl;
 
-	episode = 1;
-}
+	current_state = get_state();
+	previous_state = get_state();
 
+	episode = 1;
+
+	crashed = false;
+	rewarded = false;
 }

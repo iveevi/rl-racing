@@ -13,6 +13,6 @@ extern "C" void GDN_EXPORT godot_gdnative_terminate(godot_gdnative_terminate_opt
 extern "C" void GDN_EXPORT godot_nativescript_init(void *handle) {
     godot::Godot::nativescript_init(handle);
 
-    godot::register_class <godot::Agent> ();
-    godot::register_class <godot::Master> ();
+    godot::register_class <Agent> ();
+    godot::register_class <Master> ();
 }

@@ -22,7 +22,7 @@
 #include <agent.hpp>
 #include <global.hpp>
 
-namespace godot {
+using namespace godot;
 
 class Master : public Node2D {
 private:
@@ -44,7 +44,5 @@ public:
 	void _ready();
 	void _process(float);
 };
-
-}
 
 #endif

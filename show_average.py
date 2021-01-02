@@ -38,12 +38,12 @@ def animate(k):
     mn = min(y)
     av = mean(y)
 
-    a1.plot(x[-20:], y[-20:], label="Avergae Reward")
-    a1.plot(x[-20:], [mx] * min(20, len(y)))
-    a1.plot(x[-20:], [mn] * min(20, len(y)))
-    a1.plot(x[-20:], [av] * min(20, len(y)))
+    a1.plot(x[-100:], y[-100:], label="Average Reward")
+    a1.plot(x[-100:], [mx] * min(100, len(y)))
+    a1.plot(x[-100:], [mn] * min(100, len(y)))
+    a1.plot(x[-100:], [av] * min(100, len(y)))
     
-    a2.plot(x[-20:], e[-20:], label="Average Epsilon")
+    a2.plot(x[-100:], e[-100:], label="Average Epsilon")
 
     plt.xlabel("Episode")
     fig.suptitle("Averages")

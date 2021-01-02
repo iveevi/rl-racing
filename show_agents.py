@@ -9,8 +9,6 @@ import sys
 
 args = sys.argv
 
-print("arg = " + str(len(args)))
-
 if len(args) != 3:
     print("Incorrect number of arguments, terminating...")
 
