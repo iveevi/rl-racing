@@ -80,6 +80,9 @@ void Master::_process(float delta)
 	}
 
 	if (c_done) {
+		model.save("save/model");
+		target.save("save/target");
+
 		for (size_t i = 0; i < size; i++)
 			flushed[i] = false;
 
@@ -92,18 +95,15 @@ void Master::_process(float delta)
 		avg_reward = 0;
 		avg_epsilon = 0;
 
-		if (c_episode % 50 == 0)
+		if (c_episode % 500 == 0)
 			target = model;
 	}
 
 	// Real computation (Q learning loop)
-	for (size_t i = 0; i < size; i++)
-		agents[i]->step(delta);
+	agents[0]->step(delta);
+	agents[1]->best_step(delta);
 
-	using namespace std;
 	if (full) {
-		//fout << "Buffer is full!" << endl;
-
 		std::vector <experience> batch = sample_batch(batch_size);
 
 		DataSet <double> ins;
@@ -114,27 +114,18 @@ void Master::_process(float delta)
 			double rt = e.reward;
 
 			if (!e.done) {
-				size_t mx = model(e.transition).imax();
+				size_t mx = model.compute_no_cache(e.transition).imax();
 
-				rt += Agent::lambda * target(e.transition)[mx];
+				rt += Agent::lambda * target.compute_no_cache(e.transition)[mx];
 			}
 
-			/*
-			fout << "\tExperience:" << endl;
-			fout << "\t\ts = " << e.state << endl;
-			fout << "\t\ta = " << e.action << endl;
-			fout << "\t\ti = " << e.mx << endl;
-			fout << "\t\ts' = " << e.transition << endl;
-			fout << "\t\tr = " << e.reward << endl;
-			fout << "\t\trt = " << rt << endl;
-			fout << "\t\tat = " << e.action << endl;
-			fout << "\t\tdone = " << boolalpha << e.done << endl; */
+			// Why should we use the previous Q values?
 			e.action[e.mx] = rt;
 
 			outs.push_back(e.action);
 		}
 
-		model.train <10> (ins, outs, 2.5e-4);
+		model.simple_train <10> (ins, outs, 2.5e-4);
 	}
 }
 
@@ -146,16 +137,16 @@ void Master::_ready()
 	// Loading run configuration [new function]
 	config >> json;
 
-	rows = json["Grid"]["Rows"];
-	cols = json["Grid"]["Columns"];
+	rows = 1;
+	cols = 2;
 	threads = json["Execution"]["Threads"];
 
 	batch_size = json["Experience Batch Size"];
 
-	replay_buffer_size = json["Replay Buffer Size"];
+	rbf_size = json["Replay Buffer Size"];
 	replay_buffer_index = 0;
 
-	replay_buffer = new experience[replay_buffer_size];
+	replay_buffer = new experience[rbf_size];
 
 	// Create folder [new function]
 	system("mkdir -p results");

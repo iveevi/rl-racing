@@ -1,15 +1,17 @@
 {
-	"Grid": {
-		"Rows": 3,
-		"Columns": 3
-	},
 	"Execution": {
 		"Threads": 10,
 		"Display Graphs": true
 	},
+
+	"Exploration": {
+		"Start": 300,
+		"Delta": 0.0001,
+		"Minimum": 0.01
+	},
+
 	"Minimum Velocity": -1.0,
 	"Maximum Velocity": 15.0,
-	"Epsilon": 0.9,
-	"Experience Batch Size": 500,
-	"Replay Buffer Size": 10000
+	"Experience Batch Size": 2000,
+	"Replay Buffer Size": 20000000
 }

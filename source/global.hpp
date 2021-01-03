@@ -4,10 +4,11 @@
 // C++ standard headers
 #include <queue>
 #include <random>
+#include <set>
 
 // Zhetapi headers
 #include <network.hpp>
-#include <optimizer.hpp>
+#include <erf.hpp>
 #include <vector.hpp>
 
 using namespace zhetapi;
@@ -37,7 +38,7 @@ struct experience {
 extern experience *replay_buffer;
 
 // Buffer properties
-extern size_t replay_buffer_size;
+extern size_t rbf_size;
 extern size_t replay_buffer_index;
 
 extern bool full;
@@ -73,7 +74,7 @@ extern ml::NeuralNetwork <double> model;
 extern ml::NeuralNetwork <double> target;
 
 // Cost function
-extern ml::Optimizer <double> *cost;
+extern ml::Erf <double> *cost;
 
 // Running directory
 extern std::string dir;

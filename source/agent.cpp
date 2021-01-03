@@ -11,7 +11,8 @@ double Agent::k_a = 10;
 double Agent::k_b = 0.997;
 double Agent::k_d = 0.999;
 
-double Agent::lambda = 0.997;
+// Put lambda into JSON file
+double Agent::lambda = 0.955;
 
 Agent::Agent()
 {
@@ -22,10 +23,24 @@ Agent::Agent()
 	velocity = 0;
 	rt = 0;
 
+	// Exploration/exploitation values
 	eps = 1.0;
 }
 
 Agent::~Agent() {}
+
+void Agent::best_step(double delta)
+{
+	size_t action = best_action();
+
+	bool done = move(action, delta);
+
+	current_state = get_state();
+
+	double reward = get_reward();
+
+	rt += reward;
+}
 
 void Agent::step(double delta)
 {
@@ -72,7 +87,7 @@ double Agent::get_reward()
 
 std::pair <size_t, Vector <double>> Agent::get_action()
 {
-	Vector <double> Q_values = model(current_state);
+	Vector <double> Q_values = model.compute_no_cache(current_state);
 
 	size_t mx = 0;
 
@@ -84,6 +99,13 @@ std::pair <size_t, Vector <double>> Agent::get_action()
 		mx = rand() % 6;
 
 	return {mx, Q_values};
+}
+
+size_t Agent::best_action()
+{
+	Vector <double> Q_values = model.compute_no_cache(current_state);
+
+	return Q_values.imax();
 }
 
 bool Agent::move(size_t mx, double delta)
@@ -101,7 +123,6 @@ bool Agent::move(size_t mx, double delta)
 				velocity * sin(get_rotation())
 	));
 
-	using namespace std;
 	if (ref.ptr() || cycles >= cycle_thresh) {
 		rand_reset();
 
@@ -131,7 +152,6 @@ bool Agent::passed_gate() const
 	return false;
 }
 
-//=====================================
 void Agent::_init() {rt = 0;}
 
 void Agent::rand_reset()
@@ -152,11 +172,13 @@ void Agent::rand_reset()
 
 	csv << episode++ << "," << rt << std::endl;
 
-	eps = cap(eps - 1e-3, 0.001, 1.0);
-
 	cycles = 0;
 	velocity = 0;
 	rt = 0;
+
+	// Setup exploration/exploitation for the next episode
+	if (full)
+		eps = cap(eps - 0.0015, 0.01, 1.0);
 }
 
 Vector <double> Agent::get_state()
@@ -179,42 +201,22 @@ Vector <double> Agent::get_state()
 	);
 }
 
-// Note, no reversing
 void Agent::accelerate(size_t i, double delta)
 {
-	brake = false;
-	idle = false;
-
-	switch (i) {
-	case 0:
-		// Accelerate
-		velocity += k_a * delta;
-		break;
-	case 1:
-		// Nothing
-		idle = true;
+	// i = 0 is acceleration, i = 1 is nothing (idle)
+	if (i)
 		velocity *= pow(k_d, delta);
-		break;
-	/* case 2: Ignore braking for now
-		// Brake
-		brake = true;
-		velocity *= pow(k_b, delta);
-		break; */
-	}
+	else
+		velocity += k_a * delta;
 }
 
 void Agent::steer(size_t i)
 {
-	switch (i) {
-	case 0:
-		// Left
-		set_rotation(get_rotation() - velocity * 0.0025);
-		break;
-	case 1:
-		// Right
+	// i = 0 is left, i = 1 is right
+	if (i)
 		set_rotation(get_rotation() + velocity * 0.0025);
-		break;
-	}
+	else
+		set_rotation(get_rotation() - velocity * 0.0025);
 }
 
 void Agent::_ready()
@@ -250,7 +252,7 @@ void Agent::_ready()
 	id = size++;
 	agents.push_back(this);
 
-	// Put this method into the master _ready function
+	// Put this into the master _ready function
 	rewards.push_back(std::queue <double> ());
 	epsilons.push_back(std::queue <double> ());
 	episodes.push_back(1);

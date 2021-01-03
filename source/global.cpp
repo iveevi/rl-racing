@@ -4,7 +4,7 @@
 experience *replay_buffer;
 
 size_t replay_buffer_index = 0;
-size_t replay_buffer_size = 0;
+size_t rbf_size = 0;
 
 bool full = false;
 
@@ -12,7 +12,7 @@ void push(const experience &exp)
 {
 	replay_buffer[replay_buffer_index] = exp;
 
-	replay_buffer_index = (replay_buffer_index + 1) % replay_buffer_size;
+	replay_buffer_index = (replay_buffer_index + 1) % rbf_size;
 
 	if (!full && !replay_buffer_index)
 		full = true;
@@ -20,14 +20,21 @@ void push(const experience &exp)
 
 std::vector <experience> sample_batch(size_t batch_size)
 {
-	std::vector <experience> batch(batch_size, experience::def());
+	std::vector <experience> batch;
 
-	size_t start_index = rand() % (replay_buffer_size - batch_size + 1);
-	size_t end_index = start_index + batch_size;
+	std::set <int> in;
 
-	size_t k = 0;
-	for (size_t i = start_index; i < end_index; i++)
-		batch[k++] = replay_buffer[i];
+	while (in.size() < batch_size) {
+		size_t i = rbf_size * distribution(generator);
+
+		i %= rbf_size;
+
+		if (in.find(i) == in.end()) {
+			batch.push_back(replay_buffer[i]);
+
+			in.insert(in.begin(), i);
+		}
+	}
 
 	return batch;
 }
@@ -64,7 +71,7 @@ ml::NeuralNetwork <double> model;
 ml::NeuralNetwork <double> target;
 
 // Cost
-ml::Optimizer <double> *cost;
+ml::Erf <double> *cost;
 
 // Directory
 std::string dir;

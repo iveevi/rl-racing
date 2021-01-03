@@ -16,8 +16,8 @@
 
 // Zhetapi headers
 #include <network.hpp>
-#include <std/activation_classes.hpp>
-#include <std/optimizer_classes.hpp>
+#include <std/activations.hpp>
+#include <std/erfs.hpp>
 
 // Source headers
 #include <global.hpp>
@@ -45,11 +45,6 @@ private:
 	size_t				episode;
 	double				rt;
 
-	bool brake;
-	bool idle;
-
-	// std::vector <Vector <double>>states;
-
 	// Sensors
 	RayCast2D **			rays;
 
@@ -62,17 +57,14 @@ private:
 
 	// Exploration strategy
 	double				eps;
-	// size_t			runs;
-	// bool				explt;
-	// double			meps;
-	// double			r_explt;
-	// double			r_explr;
 
 	// Instantiate as a Godot class
 	GODOT_CLASS(Agent, KinematicBody2D);
 public:
 	void step(double);
+	void best_step(double);
 	std::pair <size_t, Vector <double>> get_action();
+	size_t best_action();
 	double get_reward();
 	bool move(size_t, double);
 	bool passed_gate() const;
@@ -91,14 +83,6 @@ public:
 
 	void rand_reset();
 
-	// double get_velocity() const {return velocity;}
-
-	// double reward_delta();
-	// Vector <double> reward(const Vector <double> &, size_t);
-
-	// void cache_state();
-	// size_t apply_action(double);	// Returns the action index
-
 	Vector <double> get_state();
 
 	void accelerate(size_t, double);
@@ -107,7 +91,6 @@ public:
 	void _init();
 
 	void _ready();
-	// void run(float delta);		// Main function
 
 	static double min_vel;
 	static double max_vel;
@@ -118,8 +101,6 @@ public:
 	static double k_a;		// Acceleration constant
 	static double k_b;		// Brake constant
 	static double k_d;		// Drag/friction constant
-	
-	// static double epsilon;
 
 	static double lambda;		// Discount factor
 };
