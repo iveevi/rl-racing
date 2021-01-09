@@ -39,24 +39,22 @@ std::vector <experience> sample_batch(size_t batch_size)
 	return batch;
 }
 
-//--------------------[CONSTANTS]-----------------
-
 // List of all agents
 std::vector <Agent *> agents;
 
 // States per each agent (current and previous)
-std::vector <Vector <double>> c_states;
-DataSet <double> p_states;
+std::vector <Vector <float>> c_states;
+DataSet <float> p_states;
 
 // Reward deltas
-std::vector <double> r_deltas;
+std::vector <float> r_deltas;
 
 // Actions for each agent
-DataSet <double> actions;
+DataSet <float> actions;
 std::vector <int> mxs;
 
-std::vector <std::queue <double>> rewards;
-std::vector <std::queue <double>> epsilons;
+std::vector <std::queue <float>> rewards;
+std::vector <std::queue <float>> epsilons;
 std::vector <int> episodes;
 std::vector <bool> flushed;
 
@@ -64,17 +62,17 @@ std::vector <bool> flushed;
 int size = 0;
 
 // Path to the track scene
-const char *p_track = "res://scenes/track.tscn";
+const char *p_track = "res://scenes/track1.tscn";
 
 // Model
-ml::NeuralNetwork <double> model;
-ml::NeuralNetwork <double> target;
+ml::NeuralNetwork <float> model;
+ml::NeuralNetwork <float> target;
 
 // Cost
-ml::Erf <double> *cost;
+ml::Erf <float> *cost;
 
 // Directory
 std::string dir;
 
 std::default_random_engine generator;
-std::uniform_real_distribution <double> distribution(0.0, 1.0);
+std::uniform_real_distribution <float> distribution(0.0, 1.0);

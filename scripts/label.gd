@@ -6,6 +6,8 @@ var time_now = 0
 func _ready():
 	time_start = OS.get_unix_time()
 	set_process(true)
+	
+	add_color_override("font_color", Color(0,0,0,0));
 
 func _process(delta):
 	time_now = OS.get_unix_time()

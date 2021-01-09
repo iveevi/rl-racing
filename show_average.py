@@ -5,6 +5,7 @@ from statistics import mean
 import matplotlib.pyplot as plt
 import pandas as pd
 import random
+import numpy as np
 
 import sys
 
@@ -17,12 +18,9 @@ if len(args) != 2:
 
 directory = sys.argv[1]
 
-fig, (a1, a2) = plt.subplots(2)
+fig, (a1, a2, a3) = plt.subplots(3)
 
 def animate(k):
-    a1.cla()
-    a2.cla()
-
     fpath = "results/" + directory + "/main"
 
     data = pd.read_csv(fpath)
@@ -31,6 +29,10 @@ def animate(k):
     y = data['average']
     e = data['epsilon']
 
+    a1.cla()
+    a2.cla()
+    a3.cla()
+
     if len(y) <= 0:
         return
 
@@ -38,18 +40,20 @@ def animate(k):
     mn = min(y)
     av = mean(y)
 
-    a1.plot(x[-100:], y[-100:], label="Average Reward")
-    a1.plot(x[-100:], [mx] * min(100, len(y)))
-    a1.plot(x[-100:], [mn] * min(100, len(y)))
-    a1.plot(x[-100:], [av] * min(100, len(y)))
-    
-    a2.plot(x[-100:], e[-100:], label="Average Epsilon")
+    a1.plot(x, y, label="Average Reward")
+    a1.plot(x, [mx] * len(y))
+    a1.plot(x, [mn] * len(y))
+    a1.plot(x, [av] * len(y))
+
+    a2.plot(x, y.rolling(15, min_periods=1).mean(), label="Smoothed Average")
+    a3.plot(x, e, label="Average Epsilon")
 
     plt.xlabel("Episode")
     fig.suptitle("Averages")
 
     a1.legend()
     a2.legend()
+    a3.legend()
 
     plt.tight_layout()
 

@@ -3,19 +3,19 @@
 Master::Master()
 {
 	auto initializer = []() {
-		return 0.5 - (rand()/(double) RAND_MAX);
+		return 0.5 - (rand()/(float) RAND_MAX);
 	};
 
 	// Load from JSON file later
-	model = ml::NeuralNetwork <double> ({
-		{11, new ml::Linear <double> ()},
-		{10, new ml::Sigmoid <double> ()},
-		{10, new ml::ReLU <double> ()},
-		{10, new ml::Sigmoid <double> ()},
-		{6, new ml::Linear <double> ()}
+	model = ml::NeuralNetwork <float> ({
+		{11, new ml::Linear <float> ()},
+		{10, new ml::Sigmoid <float> ()},
+		{10, new ml::ReLU <float> ()},
+		{10, new ml::Sigmoid <float> ()},
+		{6, new ml::Linear <float> ()}
 	}, initializer);
 
-	cost = new ml::MeanSquaredError <double> ();
+	cost = new ml::MeanSquaredError <float> ();
 
 	model.randomize();
 	model.set_cost(cost);
@@ -30,21 +30,19 @@ Master::~Master()
 
 void Master::_init() {}
 
-Vector <double> acpy;
+Vector <float> acpy;
 
 bool launch_graphs = false;
 
 int c_episode = 1;
-double avg_reward = 0;
-double avg_epsilon = 0;
+float avg_reward = 0;
+float avg_epsilon = 0;
 
 std::ofstream mout;
 
 size_t threads = 1;
 
 size_t batch_size;
-
-std::ofstream fout("output");
 void Master::_process(float delta)
 {
 	// Put inside a method
@@ -80,9 +78,6 @@ void Master::_process(float delta)
 	}
 
 	if (c_done) {
-		model.save("save/model");
-		target.save("save/target");
-
 		for (size_t i = 0; i < size; i++)
 			flushed[i] = false;
 
@@ -100,18 +95,18 @@ void Master::_process(float delta)
 	}
 
 	// Real computation (Q learning loop)
-	agents[0]->step(delta);
-	agents[1]->best_step(delta);
+	for (size_t i = 0; i < size; i++)
+		agents[i]->step(delta);
 
 	if (full) {
 		std::vector <experience> batch = sample_batch(batch_size);
 
-		DataSet <double> ins;
-		DataSet <double> outs;
+		DataSet <float> ins;
+		DataSet <float> outs;
 		for (auto e : batch) {
 			ins.push_back(e.state);
 
-			double rt = e.reward;
+			float rt = e.reward;
 
 			if (!e.done) {
 				size_t mx = model.compute_no_cache(e.transition).imax();
@@ -119,10 +114,11 @@ void Master::_process(float delta)
 				rt += Agent::lambda * target.compute_no_cache(e.transition)[mx];
 			}
 
-			// Why should we use the previous Q values?
-			e.action[e.mx] = rt;
+			Vector <float> action = model(e.state);
 
-			outs.push_back(e.action);
+			action[e.mx] = rt;
+
+			outs.push_back(action);
 		}
 
 		model.simple_train <10> (ins, outs, 2.5e-4);
@@ -137,8 +133,8 @@ void Master::_ready()
 	// Loading run configuration [new function]
 	config >> json;
 
-	rows = 1;
-	cols = 2;
+	rows = json["Grid"]["Rows"];
+	cols = json["Grid"]["Columns"];
 	threads = json["Execution"]["Threads"];
 
 	batch_size = json["Experience Batch Size"];
@@ -147,6 +143,8 @@ void Master::_ready()
 	replay_buffer_index = 0;
 
 	replay_buffer = new experience[rbf_size];
+
+	Agent::deps = json["Exploration"]["Delta"];
 
 	// Create folder [new function]
 	system("mkdir -p results");
@@ -173,8 +171,8 @@ void Master::_ready()
 
 	Ref <PackedScene> ref = rl->load(p_track);
 
-	double xoff = 0;
-	double yoff = 0;
+	float xoff = 0;
+	float yoff = 0;
 	for (int i = 0; i < rows; i++) {
 		yoff = 0;
 
@@ -193,10 +191,10 @@ void Master::_ready()
 		xoff += 11000;
 	}
 
-	double cx = xoff + 10240;
-	double cy = 7000 * cols + 6000;
+	float cx = xoff + 10240;
+	float cy = 7000 * cols + 6000;
 
-	double z = std::max(10 * cx/10240, 10 * cy/6000);
+	float z = std::max(10 * cx/10240, 10 * cy/6000);
 
 	Node *node = get_parent()->get_node("cells");
 

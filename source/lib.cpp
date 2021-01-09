@@ -9,7 +9,7 @@ void Agent::_register_methods()
 
 	register_property <Agent, NodePath> ("spawn", &Agent::spawn, NodePath());
 	register_property <Agent, NodePath> ("gates", &Agent::gates, NodePath());
-	register_property <Agent, double> ("angle", &Agent::angle, 0);
+	register_property <Agent, float> ("angle", &Agent::angle, 0);
 }
 
 // Godot standard methods

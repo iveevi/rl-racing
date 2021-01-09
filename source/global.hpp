@@ -15,19 +15,19 @@ using namespace zhetapi;
 
 // Experience: (s, a, s', r)
 struct experience {
-	Vector <double> state;		// Current state (s)
-	Vector <double> action;		// Approximated Q values (a)
+	Vector <float> state;		// Current state (s)
+	// Vector <float> action;		// Approximated Q values (a)
 	int mx;				// Index of action chosen
-	Vector <double> transition;	// Next state (s')
-	double reward;			// Reward received (r)
+	Vector <float> transition;	// Next state (s')
+	float reward;			// Reward received (r)
 	bool done;			// Last step flag
 
 	static experience def() {
 		return {
-			Vector <double> (11, 0.0),
-			Vector <double> (9, 0.0),
+			Vector <float> (11, 0.0f),
+			// Vector <float> (9, 0.0f),
 			0,
-			Vector <double> (11, 0.0),
+			Vector <float> (11, 0.0f),
 			0,
 			false
 		};
@@ -64,22 +64,22 @@ extern int size;
 extern std::vector <Agent *> agents;
 
 // Queues and status' for average statistics
-extern std::vector <std::queue <double>> rewards;
-extern std::vector <std::queue <double>> epsilons;
+extern std::vector <std::queue <float>> rewards;
+extern std::vector <std::queue <float>> epsilons;
 extern std::vector <int> episodes;
 extern std::vector <bool> flushed;
 
 // Global model
-extern ml::NeuralNetwork <double> model;
-extern ml::NeuralNetwork <double> target;
+extern ml::NeuralNetwork <float> model;
+extern ml::NeuralNetwork <float> target;
 
 // Cost function
-extern ml::Erf <double> *cost;
+extern ml::Erf <float> *cost;
 
 // Running directory
 extern std::string dir;
 
 extern std::default_random_engine generator;
-extern std::uniform_real_distribution <double> distribution;
+extern std::uniform_real_distribution <float> distribution;
 
 #endif

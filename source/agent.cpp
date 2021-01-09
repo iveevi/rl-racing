@@ -1,18 +1,19 @@
 #include <agent.hpp>
 
-double Agent::min_vel = -1;
-double Agent::max_vel = 15;
-double Agent::idle_vel = 0.05;
+float Agent::min_vel = -1;
+float Agent::max_vel = 15;
+float Agent::idle_vel = 0.05;
 
 // Perhaps use delta instead
 int Agent::cycle_thresh = 1000;
 
-double Agent::k_a = 10;
-double Agent::k_b = 0.997;
-double Agent::k_d = 0.999;
+float Agent::k_a = 10;
+float Agent::k_b = 0.997;
+float Agent::k_d = 0.999;
 
 // Put lambda into JSON file
-double Agent::lambda = 0.955;
+float Agent::lambda = 0.955;
+float Agent::deps = 0.0015;
 
 Agent::Agent()
 {
@@ -29,7 +30,7 @@ Agent::Agent()
 
 Agent::~Agent() {}
 
-void Agent::best_step(double delta)
+void Agent::best_step(float delta)
 {
 	size_t action = best_action();
 
@@ -37,29 +38,32 @@ void Agent::best_step(double delta)
 
 	current_state = get_state();
 
-	double reward = get_reward();
+	float reward = get_reward();
 
 	rt += reward;
 }
 
-void Agent::step(double delta)
+void Agent::step(float delta)
 {
-	std::pair <size_t, Vector <double>> action = get_action();
+	// std::pair <size_t, Vector <float>> action = get_action();
+	size_t a1 = get_action();
 
-	bool done = move(action.first, delta);
+	// bool done = move(action.first, delta);
+	bool done = move(a1, delta);
 
 	previous_state = current_state;
 
 	current_state = get_state();
 
-	double reward = get_reward();
+	float reward = get_reward();
 
 	rt += reward;
 	
 	experience exp {
 		previous_state,
-		action.second,
-		action.first,
+		// action.second,
+		// action.first,
+		a1,
 		current_state,
 		reward,
 		done
@@ -68,7 +72,7 @@ void Agent::step(double delta)
 	push(exp);
 }
 
-double Agent::get_reward()
+float Agent::get_reward()
 {
 	if (crashed) {
 		crashed = false;
@@ -85,30 +89,30 @@ double Agent::get_reward()
 	return 0;
 }
 
-std::pair <size_t, Vector <double>> Agent::get_action()
+size_t Agent::get_action()
 {
-	Vector <double> Q_values = model.compute_no_cache(current_state);
+	Vector <float> Q_values = model.compute_no_cache(current_state);
 
 	size_t mx = 0;
 
-	double rnd = distribution(generator);
+	float rnd = distribution(generator);
 
 	if (rnd > eps)
 		mx = Q_values.imax();
 	else
 		mx = rand() % 6;
 
-	return {mx, Q_values};
+	return mx;
 }
 
 size_t Agent::best_action()
 {
-	Vector <double> Q_values = model.compute_no_cache(current_state);
+	Vector <float> Q_values = model.compute_no_cache(current_state);
 
 	return Q_values.imax();
 }
 
-bool Agent::move(size_t mx, double delta)
+bool Agent::move(size_t mx, float delta)
 {
 	accelerate(mx / 3, delta);
 	steer(mx % 3);
@@ -157,6 +161,7 @@ void Agent::_init() {rt = 0;}
 void Agent::rand_reset()
 {
 	int index = rand() % spawns;
+	// int index = 0;
 	
 	Node2D *nd = Object::cast_to <Node2D> (get_node(spawn)->get_child(index));
 	
@@ -178,30 +183,30 @@ void Agent::rand_reset()
 
 	// Setup exploration/exploitation for the next episode
 	if (full)
-		eps = cap(eps - 0.0015, 0.01, 1.0);
+		eps = cap(eps - deps, 0.01f, 1.0f);
 }
 
-Vector <double> Agent::get_state()
+Vector <float> Agent::get_state()
 {
-	return Vector <double> (11,
+	return Vector <float> (11,
 		[&](size_t i) {
 			switch (i) {
 			case 0:
 				return velocity;
 			case 1:
-				return velocity * cos(get_rotation());
+				return velocity * (float) cos(get_rotation());
 			case 2:
-				return velocity * sin(get_rotation());
+				return velocity * (float) sin(get_rotation());
 			default:
 				Vector2 other = rays[i - 3]->get_collision_point();
 
-				return (double) get_global_position().distance_to(other);
+				return (float) get_global_position().distance_to(other);
 			}
 		}
 	);
 }
 
-void Agent::accelerate(size_t i, double delta)
+void Agent::accelerate(size_t i, float delta)
 {
 	// i = 0 is acceleration, i = 1 is nothing (idle)
 	if (i)
@@ -253,8 +258,8 @@ void Agent::_ready()
 	agents.push_back(this);
 
 	// Put this into the master _ready function
-	rewards.push_back(std::queue <double> ());
-	epsilons.push_back(std::queue <double> ());
+	rewards.push_back(std::queue <float> ());
+	epsilons.push_back(std::queue <float> ());
 	episodes.push_back(1);
 	flushed.push_back(false);
 

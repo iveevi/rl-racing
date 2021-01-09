@@ -29,21 +29,21 @@ using namespace zhetapi;
 
 class Agent : public KinematicBody2D {
 private:
-	Vector <double>			current_state;
-	Vector <double>			previous_state;
+	Vector <float>			current_state;
+	Vector <float>			previous_state;
 
 	bool				crashed;
 	bool				rewarded;
 
 	int				spawns;
 	int				cycles;
-	double				velocity;
+	float				velocity;
 	Vector2				ppos;
 
 	// Logging information
 	std::ofstream			csv;
 	size_t				episode;
-	double				rt;
+	float				rt;
 
 	// Sensors
 	RayCast2D **			rays;
@@ -56,24 +56,24 @@ private:
 	size_t				id;
 
 	// Exploration strategy
-	double				eps;
+	float				eps;
 
 	// Instantiate as a Godot class
 	GODOT_CLASS(Agent, KinematicBody2D);
 public:
-	void step(double);
-	void best_step(double);
-	std::pair <size_t, Vector <double>> get_action();
+	void step(float);
+	void best_step(float);
+	size_t get_action();
 	size_t best_action();
-	double get_reward();
-	bool move(size_t, double);
+	float get_reward();
+	bool move(size_t, float);
 	bool passed_gate() const;
 
 	// Accessible from GDScript classes
 	NodePath spawn;
 	NodePath gates;
 
-	double angle;
+	float angle;
 	
 	// Methods
 	static void _register_methods();
@@ -83,26 +83,28 @@ public:
 
 	void rand_reset();
 
-	Vector <double> get_state();
+	Vector <float> get_state();
 
-	void accelerate(size_t, double);
+	void accelerate(size_t, float);
 	void steer(size_t);
 
 	void _init();
 
 	void _ready();
 
-	static double min_vel;
-	static double max_vel;
-	static double idle_vel;		// Maximum velocity considered to be "idle"
+	static float min_vel;
+	static float max_vel;
+	static float idle_vel;		// Maximum velocity considered to be "idle"
 
 	static int cycle_thresh;	// Number of "idle" cycles before reseting
 	
-	static double k_a;		// Acceleration constant
-	static double k_b;		// Brake constant
-	static double k_d;		// Drag/friction constant
+	static float k_a;		// Acceleration constant
+	static float k_b;		// Brake constant
+	static float k_d;		// Drag/friction constant
 
-	static double lambda;		// Discount factor
+	static float lambda;		// Discount factor
+	
+	static float deps;
 };
 
 #endif

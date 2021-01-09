@@ -28,6 +28,7 @@ margin_left = 23.0
 margin_top = 20.0
 margin_right = 363.0
 margin_bottom = 124.0
+custom_colors/default_color = Color( 0.839216, 0.356863, 0.356863, 1 )
 script = ExtResource( 3 )
 __meta__ = {
 "_edit_use_anchors_": false
