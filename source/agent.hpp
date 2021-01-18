@@ -58,6 +58,12 @@ private:
 	// Exploration strategy
 	float				eps;
 
+	// TD error
+	size_t				frames;
+	float				total;
+
+	float				Q_value;
+
 	// Instantiate as a Godot class
 	GODOT_CLASS(Agent, KinematicBody2D);
 public:

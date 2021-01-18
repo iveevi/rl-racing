@@ -54,6 +54,7 @@ DataSet <float> actions;
 std::vector <int> mxs;
 
 std::vector <std::queue <float>> rewards;
+std::vector <std::queue <float>> tds;
 std::vector <std::queue <float>> epsilons;
 std::vector <int> episodes;
 std::vector <bool> flushed;
@@ -76,3 +77,15 @@ std::string dir;
 
 std::default_random_engine generator;
 std::uniform_real_distribution <float> distribution(0.0, 1.0);
+
+// Base model
+size_t base(const Vector <double> &x)
+{
+	size_t dir = 2;
+	if (x[0] - x[1] > 10)
+		dir = 0;
+	else if (x[1] - x[0] > 10)
+		dir = 1;
+
+	return dir;
+}

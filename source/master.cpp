@@ -10,7 +10,7 @@ Master::Master()
 	model = ml::NeuralNetwork <float> ({
 		{11, new ml::Linear <float> ()},
 		{10, new ml::Sigmoid <float> ()},
-		{10, new ml::ReLU <float> ()},
+		// {10, new ml::ReLU <float> ()},
 		{10, new ml::Sigmoid <float> ()},
 		{6, new ml::Linear <float> ()}
 	}, initializer);
@@ -37,12 +37,15 @@ bool launch_graphs = false;
 int c_episode = 1;
 float avg_reward = 0;
 float avg_epsilon = 0;
+float avg_td = 0;
 
 std::ofstream mout;
 
 size_t threads = 1;
 
 size_t batch_size;
+
+double lr = 0;
 void Master::_process(float delta)
 {
 	// Put inside a method
@@ -69,8 +72,11 @@ void Master::_process(float delta)
 
 				avg_reward += rewards[i].front();
 				avg_epsilon += epsilons[i].front();
+				avg_td += tds[i].front();
+
 				rewards[i].pop();
 				epsilons[i].pop();
+				tds[i].pop();
 			}
 		} else {
 			c_done = false;
@@ -83,14 +89,16 @@ void Master::_process(float delta)
 
 		avg_reward /= size;
 		avg_epsilon /= size;
+		avg_td /= size;
 
-		mout << c_episode << "," << avg_reward << "," << avg_epsilon << std::endl;
+		mout << c_episode << "," << avg_reward << "," << avg_epsilon << "," << avg_td << std::endl;
 
 		c_episode++;
 		avg_reward = 0;
 		avg_epsilon = 0;
+		avg_td = 0;
 
-		if (c_episode % 500 == 0)
+		if (c_episode % 100 == 0)
 			target = model;
 	}
 
@@ -121,7 +129,7 @@ void Master::_process(float delta)
 			outs.push_back(action);
 		}
 
-		model.simple_train <10> (ins, outs, 2.5e-4);
+		model.simple_train <10> (ins, outs, lr);
 	}
 }
 
@@ -146,6 +154,8 @@ void Master::_ready()
 
 	Agent::deps = json["Exploration"]["Delta"];
 
+	lr = json["Alpha"];
+
 	// Create folder [new function]
 	system("mkdir -p results");
 
@@ -165,7 +175,7 @@ void Master::_ready()
 	std::string fpath = "results/" + dir + "/main";
 
 	mout.open(fpath);
-	mout << "episode,average,epsilon" << std::endl;
+	mout << "episode,average,epsilon,td" << std::endl;
 
 	ResourceLoader *rl = ResourceLoader::get_singleton();
 

@@ -69,6 +69,10 @@ void Agent::step(float delta)
 		done
 	};
 
+	total += reward + lambda * target(current_state)[a1] - Q_value;
+
+	frames++;
+
 	push(exp);
 }
 
@@ -101,6 +105,8 @@ size_t Agent::get_action()
 		mx = Q_values.imax();
 	else
 		mx = rand() % 6;
+
+	Q_value = Q_values[mx];
 
 	return mx;
 }
@@ -172,6 +178,7 @@ void Agent::rand_reset()
 
 	// Method/function
 	rewards[id].push(rt);
+	tds[id].push(total/frames);
 	epsilons[id].push(eps);
 	episodes[id]++;
 
@@ -180,6 +187,8 @@ void Agent::rand_reset()
 	cycles = 0;
 	velocity = 0;
 	rt = 0;
+	total = 0;
+	frames = 0;
 
 	// Setup exploration/exploitation for the next episode
 	if (full)
@@ -218,10 +227,16 @@ void Agent::accelerate(size_t i, float delta)
 void Agent::steer(size_t i)
 {
 	// i = 0 is left, i = 1 is right
-	if (i)
+	using namespace std;
+	if (i == 1) {
+		cout << "RIGHT" << endl;
 		set_rotation(get_rotation() + velocity * 0.0025);
-	else
+	} else if (i == 0) {
+		cout << "LEFT" << endl;
 		set_rotation(get_rotation() - velocity * 0.0025);
+	} else {
+		cout << "NONE" << endl;
+	}
 }
 
 void Agent::_ready()
@@ -260,6 +275,7 @@ void Agent::_ready()
 	// Put this into the master _ready function
 	rewards.push_back(std::queue <float> ());
 	epsilons.push_back(std::queue <float> ());
+	tds.push_back(std::queue <float> ());
 	episodes.push_back(1);
 	flushed.push_back(false);
 

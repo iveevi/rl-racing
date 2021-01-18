@@ -15,6 +15,7 @@
 		"Minimum": 0.01
 	},
 
+	"Alpha": 7.5e-3,
 	"Minimum Velocity": -1.0,
 	"Maximum Velocity": 15.0,
 	"Experience Batch Size": 500,

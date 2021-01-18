@@ -65,6 +65,7 @@ extern std::vector <Agent *> agents;
 
 // Queues and status' for average statistics
 extern std::vector <std::queue <float>> rewards;
+extern std::vector <std::queue <float>> tds;
 extern std::vector <std::queue <float>> epsilons;
 extern std::vector <int> episodes;
 extern std::vector <bool> flushed;
@@ -81,5 +82,7 @@ extern std::string dir;
 
 extern std::default_random_engine generator;
 extern std::uniform_real_distribution <float> distribution;
+
+size_t base(const Vector <double> &);
 
 #endif
