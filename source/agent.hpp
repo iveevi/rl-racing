@@ -29,6 +29,8 @@ using namespace zhetapi;
 
 class Agent : public KinematicBody2D {
 private:
+	Vector2				p_pos;
+
 	Vector <float>			current_state;
 	Vector <float>			previous_state;
 

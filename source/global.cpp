@@ -79,9 +79,11 @@ std::default_random_engine generator;
 std::uniform_real_distribution <float> distribution(0.0, 1.0);
 
 // Base model
-size_t base(const Vector <double> &x)
+size_t base(Vector <double> x)
 {
 	size_t dir = 2;
+	using namespace std;
+	cout << "current = " << x << endl;
 	if (x[0] - x[1] > 10)
 		dir = 0;
 	else if (x[1] - x[0] > 10)

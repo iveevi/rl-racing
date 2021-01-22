@@ -83,6 +83,6 @@ extern std::string dir;
 extern std::default_random_engine generator;
 extern std::uniform_real_distribution <float> distribution;
 
-size_t base(const Vector <double> &);
+size_t base(Vector <double>);
 
 #endif

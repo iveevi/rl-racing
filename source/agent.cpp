@@ -1,13 +1,13 @@
 #include <agent.hpp>
 
 float Agent::min_vel = -1;
-float Agent::max_vel = 15;
+float Agent::max_vel = 5;
 float Agent::idle_vel = 0.05;
 
 // Perhaps use delta instead
 int Agent::cycle_thresh = 1000;
 
-float Agent::k_a = 10;
+float Agent::k_a = 1;
 float Agent::k_b = 0.997;
 float Agent::k_d = 0.999;
 
@@ -25,7 +25,7 @@ Agent::Agent()
 	rt = 0;
 
 	// Exploration/exploitation values
-	eps = 1.0;
+	eps = 0.1;
 }
 
 Agent::~Agent() {}
@@ -81,13 +81,17 @@ float Agent::get_reward()
 	if (crashed) {
 		crashed = false;
 
-		return -200;
+		return -2;
 	}
+
+	/* float r = (get_global_position() - p_pos).length();
+	
+	p_pos = get_global_position(); */
 
 	if (rewarded) {
 		rewarded = false;
 
-		return 100;
+		return 1;
 	}
 
 	return 0;
@@ -101,10 +105,17 @@ size_t Agent::get_action()
 
 	float rnd = distribution(generator);
 
-	if (rnd > eps)
+	if (rnd > eps) {
 		mx = Q_values.imax();
-	else
+	} else if (rnd > eps * eps) {
+		mx = 2;
+		if (current_state[3] - current_state[4] > 1)
+			mx = 1;
+		else if (current_state[4] - current_state[3] > 1)
+			mx = 0;
+	} else {
 		mx = rand() % 6;
+	}
 
 	Q_value = Q_values[mx];
 
@@ -190,9 +201,9 @@ void Agent::rand_reset()
 	total = 0;
 	frames = 0;
 
-	// Setup exploration/exploitation for the next episode
+	/* Setup exploration/exploitation for the next episode
 	if (full)
-		eps = cap(eps - deps, 0.01f, 1.0f);
+		eps = cap(eps - deps, 0.01f, 1.0f); */
 }
 
 Vector <float> Agent::get_state()
@@ -227,16 +238,10 @@ void Agent::accelerate(size_t i, float delta)
 void Agent::steer(size_t i)
 {
 	// i = 0 is left, i = 1 is right
-	using namespace std;
-	if (i == 1) {
-		cout << "RIGHT" << endl;
-		set_rotation(get_rotation() + velocity * 0.0025);
-	} else if (i == 0) {
-		cout << "LEFT" << endl;
-		set_rotation(get_rotation() - velocity * 0.0025);
-	} else {
-		cout << "NONE" << endl;
-	}
+	if (i == 1)
+		set_rotation(get_rotation() + velocity * 0.001);
+	else if (i == 0)
+		set_rotation(get_rotation() - velocity * 0.001);
 }
 
 void Agent::_ready()
@@ -290,4 +295,6 @@ void Agent::_ready()
 
 	crashed = false;
 	rewarded = false;
+
+	p_pos = get_global_position();
 }
