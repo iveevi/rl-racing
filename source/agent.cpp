@@ -99,7 +99,7 @@ float Agent::get_reward()
 
 size_t Agent::get_action()
 {
-	Vector <float> Q_values = model.compute_no_cache(current_state);
+	Vector <float> Q_values = model(current_state);
 
 	size_t mx = 0;
 
@@ -124,7 +124,7 @@ size_t Agent::get_action()
 
 size_t Agent::best_action()
 {
-	Vector <float> Q_values = model.compute_no_cache(current_state);
+	Vector <float> Q_values = model(current_state);
 
 	return Q_values.imax();
 }

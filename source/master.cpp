@@ -7,18 +7,18 @@ Master::Master()
 	};
 
 	// Load from JSON file later
-	model = ml::NeuralNetwork <float> ({
-		{11, new ml::Linear <float> ()},
-		{10, new ml::Sigmoid <float> ()},
-		// {10, new ml::ReLU <float> ()},
-		{10, new ml::Sigmoid <float> ()},
-		{6, new ml::Linear <float> ()}
-	}, initializer);
+	model = ml::NeuralNetwork <float> (11, {
+		ml::Layer {10, new ml::Sigmoid <float> ()},
+		ml::Layer{10, new ml::Sigmoid <float> ()},
+		ml::Layer{6, new ml::Linear <float> ()}
+	});
 
 	cost = new ml::MeanSquaredError <float> ();
 
-	model.randomize();
+	ml::Optimizer <float> *opt = new ml::Nesterov <float> (0.05);
+
 	model.set_cost(cost);
+	model.set_optimizer(opt);
 
 	target = model;
 }
@@ -117,9 +117,9 @@ void Master::_process(float delta)
 			float rt = e.reward;
 
 			if (!e.done) {
-				size_t mx = model.compute_no_cache(e.transition).imax();
+				size_t mx = model(e.transition).imax();
 
-				rt += Agent::lambda * target.compute_no_cache(e.transition)[mx];
+				rt += Agent::lambda * target(e.transition)[mx];
 			}
 
 			Vector <float> action = model(e.state);
@@ -129,7 +129,7 @@ void Master::_process(float delta)
 			outs.push_back(action);
 		}
 
-		model.simple_train <10> (ins, outs, lr);
+		model.fit(ins, outs);
 	}
 }
 

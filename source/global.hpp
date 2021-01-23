@@ -10,6 +10,8 @@
 #include <network.hpp>
 #include <erf.hpp>
 #include <vector.hpp>
+#include <std/erfs.hpp>
+#include <std/optimizers.hpp>
 
 using namespace zhetapi;
 
