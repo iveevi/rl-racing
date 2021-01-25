@@ -1,7 +1,7 @@
 #include <global.hpp>
 
 // Replay buffer variables and operations
-experience *replay_buffer;
+pbuffer <experience> q;
 
 size_t replay_buffer_index = 0;
 size_t rbf_size = 0;
@@ -10,30 +10,35 @@ bool full = false;
 
 void push(const experience &exp)
 {
-	replay_buffer[replay_buffer_index] = exp;
+	using namespace std;
+	full = (q.size() == rbf_size);
 
-	replay_buffer_index = (replay_buffer_index + 1) % rbf_size;
+	/*
+	cout << "---------------" << endl;
+	cout << "rbf_size = " << rbf_size << endl;
 
-	if (!full && !replay_buffer_index)
-		full = true;
+	cout << "size = " << q.size() << endl; */
+
+	// cout << "psize = " << q.size() << endl;
+	if (full) {
+		// cout << "FULL" << endl;
+		q.remove_bottom(exp);
+	} else {
+		q.push(exp);
+		// cout << "NOT FULL" << endl;
+	}
+	cout << "prsize = " << q.size() << endl;
+	
+	cout << "max err = " << q.top().td << endl;
+	cout << "pushing td = " << exp.td << endl;
 }
 
 std::vector <experience> sample_batch(size_t batch_size)
 {
 	std::vector <experience> batch;
-
-	std::set <int> in;
-
-	while (in.size() < batch_size) {
-		size_t i = rbf_size * distribution(generator);
-
-		i %= rbf_size;
-
-		if (in.find(i) == in.end()) {
-			batch.push_back(replay_buffer[i]);
-
-			in.insert(in.begin(), i);
-		}
+	for (size_t i = 0; i < batch_size; i++) {
+		batch.push_back(q.top());
+		q.pop();
 	}
 
 	return batch;

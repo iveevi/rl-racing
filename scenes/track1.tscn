@@ -16,12 +16,20 @@ position = Vector2( 0.256343, -152.483 )
 rotation = -1.37662
 
 [node name="spawn-point2" parent="spawns" instance=ExtResource( 2 )]
-position = Vector2( 0.256343, -152.483 )
-rotation = -1.73418
+position = Vector2( -0.64061, -134.992 )
+rotation = -1.25674
 
 [node name="spawn-point3" parent="spawns" instance=ExtResource( 2 )]
-position = Vector2( 0.256343, -152.483 )
-rotation = -7.40815
+position = Vector2( -0.192123, -170.871 )
+rotation = -0.797785
+
+[node name="spawn-point4" parent="spawns" instance=ExtResource( 2 )]
+position = Vector2( -1.08908, -120.641 )
+rotation = -1.62726
+
+[node name="spawn-point5" parent="spawns" instance=ExtResource( 2 )]
+position = Vector2( -0.64061, -181.186 )
+rotation = -1.37662
 
 [node name="image" type="Sprite" parent="."]
 texture = ExtResource( 1 )
@@ -33,6 +41,10 @@ __meta__ = {
 zoom = Vector2( 10, 10 )
 
 [node name="check-points" type="Node2D" parent="."]
+visible = false
+__meta__ = {
+"_edit_group_": true
+}
 
 [node name="c1" type="Area2D" parent="check-points"]
 position = Vector2( -93.5245, -124.916 )

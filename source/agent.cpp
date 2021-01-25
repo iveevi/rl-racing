@@ -1,7 +1,7 @@
 #include <agent.hpp>
 
 float Agent::min_vel = -1;
-float Agent::max_vel = 5;
+float Agent::max_vel = 1;
 float Agent::idle_vel = 0.05;
 
 // Perhaps use delta instead
@@ -25,7 +25,7 @@ Agent::Agent()
 	rt = 0;
 
 	// Exploration/exploitation values
-	eps = 0.1;
+	eps = 1;
 }
 
 Agent::~Agent() {}
@@ -58,22 +58,37 @@ void Agent::step(float delta)
 	float reward = get_reward();
 
 	rt += reward;
+
+	double err = fabs(reward + lambda * target(current_state)[a1] - Q_value);
+
+	using namespace std;
+	// cout << "err =  " << err << endl;
+
+	total += err;
+	// cout << "total = " << total << endl;
 	
 	experience exp {
 		previous_state,
-		// action.second,
-		// action.first,
 		a1,
 		current_state,
 		reward,
+		err,
 		done
 	};
 
-	total += reward + lambda * target(current_state)[a1] - Q_value;
-
 	frames++;
 
+	// cout << "eps = " << eps << endl;
+
 	push(exp);
+
+	// cout << "Finished step!" << endl;
+	std::string s = "Reliance: " + std::to_string(eps);
+
+	rel->set_text(s.c_str());
+
+	if (frames % 1000 == 0)
+		eps = cap(eps - deps, 0.1f, 1.0f);
 }
 
 float Agent::get_reward()
@@ -81,17 +96,13 @@ float Agent::get_reward()
 	if (crashed) {
 		crashed = false;
 
-		return -2;
+		return -10;
 	}
-
-	/* float r = (get_global_position() - p_pos).length();
-	
-	p_pos = get_global_position(); */
 
 	if (rewarded) {
 		rewarded = false;
 
-		return 1;
+		return 5;
 	}
 
 	return 0;
@@ -101,20 +112,25 @@ size_t Agent::get_action()
 {
 	Vector <float> Q_values = model.compute_no_cache(current_state);
 
+	using namespace std;
+	cout << "Q_values: " << Q_values << endl;
+
 	size_t mx = 0;
 
 	float rnd = distribution(generator);
 
 	if (rnd > eps) {
+		// cout << "Network!" << endl;
 		mx = Q_values.imax();
-	} else if (rnd > eps * eps) {
-		mx = 2;
-		if (current_state[3] - current_state[4] > 1)
-			mx = 1;
-		else if (current_state[4] - current_state[3] > 1)
-			mx = 0;
 	} else {
-		mx = rand() % 6;
+		// cout << "Heurestic!" << endl;
+		mx = 2;
+		if (current_state[3] - current_state[4] > 0.1)
+			mx = 1;
+		else if (current_state[4] - current_state[3] > 0.1)
+			mx = 0;
+
+		mx += (rnd > 0.5) ? 3 : 0;
 	}
 
 	Q_value = Q_values[mx];
@@ -196,14 +212,10 @@ void Agent::rand_reset()
 	csv << episode++ << "," << rt << std::endl;
 
 	cycles = 0;
-	velocity = 0;
+	velocity = max_vel * rand()/((double) RAND_MAX);
 	rt = 0;
 	total = 0;
 	frames = 0;
-
-	/* Setup exploration/exploitation for the next episode
-	if (full)
-		eps = cap(eps - deps, 0.01f, 1.0f); */
 }
 
 Vector <float> Agent::get_state()
@@ -239,9 +251,9 @@ void Agent::steer(size_t i)
 {
 	// i = 0 is left, i = 1 is right
 	if (i == 1)
-		set_rotation(get_rotation() + velocity * 0.001);
+		set_rotation(get_rotation() + velocity * 0.0005);
 	else if (i == 0)
-		set_rotation(get_rotation() - velocity * 0.001);
+		set_rotation(get_rotation() - velocity * 0.0005);
 }
 
 void Agent::_ready()

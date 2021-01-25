@@ -1,5 +1,7 @@
 #include <master.hpp>
 
+RichTextLabel *rel;
+
 Master::Master()
 {
 	auto initializer = []() {
@@ -10,7 +12,8 @@ Master::Master()
 	model = ml::NeuralNetwork <float> ({
 		{11, new ml::Linear <float> ()},
 		{10, new ml::Sigmoid <float> ()},
-		// {10, new ml::ReLU <float> ()},
+		{10, new ml::ReLU <float> ()},		// Added
+		{10, new ml::ReLU <float> ()},		// Added
 		{10, new ml::Sigmoid <float> ()},
 		{6, new ml::Linear <float> ()}
 	}, initializer);
@@ -54,9 +57,9 @@ void Master::_process(float delta)
 
 		std::string cmd;
 
-		cmd = "python show_agents.py " + dir + " " + std::to_string(size) + " &";
+		/* cmd = "python show_agents.py " + dir + " " + std::to_string(size) + " &";
 
-		system(cmd.c_str());
+		system(cmd.c_str()); */
 		
 		cmd = "python show_average.py " + dir + " &";
 		
@@ -98,7 +101,7 @@ void Master::_process(float delta)
 		avg_epsilon = 0;
 		avg_td = 0;
 
-		if (c_episode % 100 == 0)
+		if (c_episode % 50 == 0)
 			target = model;
 	}
 
@@ -106,7 +109,12 @@ void Master::_process(float delta)
 	for (size_t i = 0; i < size; i++)
 		agents[i]->step(delta);
 
+	using namespace std;
 	if (full) {
+		/* cout << "======================================================" << endl;
+		cout << "full = " << std::boolalpha << full << endl;
+		cout << "\tq.size = " << q.size() << endl; */
+
 		std::vector <experience> batch = sample_batch(batch_size);
 
 		DataSet <float> ins;
@@ -130,6 +138,16 @@ void Master::_process(float delta)
 		}
 
 		model.simple_train <10> (ins, outs, lr);
+
+		/* for (auto &e : batch) {
+			size_t mx = model.compute_no_cache(e.transition).imax();
+
+			e.td = fabs(e.reward + Agent::lambda *
+					target.compute_no_cache(e.transition)[mx]
+					- model.compute_no_cache(e.state)[e.mx]);
+
+			push(e);
+		} */
 	}
 }
 
@@ -150,7 +168,7 @@ void Master::_ready()
 	rbf_size = json["Replay Buffer Size"];
 	replay_buffer_index = 0;
 
-	replay_buffer = new experience[rbf_size];
+	// replay_buffer = new experience[rbf_size];
 
 	Agent::deps = json["Exploration"]["Delta"];
 
@@ -215,4 +233,8 @@ void Master::_ready()
 				xoff/2 - 5000,
 				3500 * cols - 5000
 	));
+
+	Node *nd = get_parent()->get_node("CanvasLayer")->get_node("Reliance");
+
+	rel = Object::cast_to <RichTextLabel> (nd);
 }

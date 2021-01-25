@@ -33,3 +33,14 @@ script = ExtResource( 3 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
+
+[node name="Reliance" type="RichTextLabel" parent="CanvasLayer"]
+margin_left = 23.0
+margin_top = 549.0
+margin_right = 1001.0
+margin_bottom = 582.0
+custom_colors/default_color = Color( 0.839216, 0.356863, 0.356863, 1 )
+text = "Reliance:"
+__meta__ = {
+"_edit_use_anchors_": false
+}

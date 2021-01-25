@@ -15,9 +15,9 @@
 		"Minimum": 0.01
 	},
 
-	"Alpha": 0.1,
+	"Alpha": 0.05,
 	"Minimum Velocity": -1.0,
 	"Maximum Velocity": 15.0,
-	"Experience Batch Size": 500,
-	"Replay Buffer Size": 1000000
+	"Experience Batch Size": 50,
+	"Replay Buffer Size": 1000
 }
