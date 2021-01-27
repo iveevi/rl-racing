@@ -220,7 +220,7 @@ void Agent::rand_reset()
 
 Vector <float> Agent::get_state()
 {
-	return Vector <float> (11,
+	return Vector <float> (5,
 		[&](size_t i) {
 			switch (i) {
 			case 0:

@@ -10,7 +10,7 @@ Master::Master()
 
 	// Load from JSON file later
 	model = ml::NeuralNetwork <float> ({
-		{11, new ml::Linear <float> ()},
+		{5, new ml::Linear <float> ()},
 		{10, new ml::Sigmoid <float> ()},
 		{10, new ml::ReLU <float> ()},		// Added
 		{10, new ml::ReLU <float> ()},		// Added
