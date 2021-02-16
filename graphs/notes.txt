@@ -1,0 +1,4 @@
+Notes:
+	- Lower learning rate (deviation from previous iteration is a bit much)
+	- Increase epsilon decay rate: wasted time while waiting for this to get low,
+	this is when the actual learning happens (based on many curves)

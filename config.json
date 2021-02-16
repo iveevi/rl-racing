@@ -11,13 +11,13 @@
 
 	"Exploration": {
 		"Start": 300,
-		"Delta": 0.0015,
+		"Delta": 0.0005,
 		"Minimum": 0.01
 	},
 
-	"Alpha": 0.05,
+	"Alpha": 0.025,
 	"Minimum Velocity": -1.0,
 	"Maximum Velocity": 15.0,
-	"Experience Batch Size": 50,
-	"Replay Buffer Size": 1000
+	"Experience Batch Size": 100,
+	"Replay Buffer Size": 5000
 }

@@ -9,21 +9,12 @@ height = 65.3798
 
 [node name="car" type="KinematicBody2D"]
 position = Vector2( -107.92, -149.353 )
+scale = Vector2( 2, 2 )
 script = ExtResource( 1 )
 __meta__ = {
 "_edit_group_": true,
 "_edit_vertical_guides_": [  ]
 }
-spawn = null
-angle = null
-fright = null
-fleft = null
-bright = null
-bleft = null
-front = null
-back = null
-right = null
-left = null
 
 [node name="Sprite" type="Sprite" parent="."]
 scale = Vector2( 0.05, 0.05 )
@@ -34,41 +25,30 @@ texture = ExtResource( 2 )
 rotation = 1.5708
 shape = SubResource( 1 )
 
-[node name="fright" type="RayCast2D" parent="."]
-rotation = -0.785398
-enabled = true
-cast_to = Vector2( 0, 1000 )
-
-[node name="fleft" type="RayCast2D" parent="."]
-rotation = -2.35619
-enabled = true
-cast_to = Vector2( 0, 1000 )
-
-[node name="bright" type="RayCast2D" parent="."]
-rotation = 0.785398
-enabled = true
-cast_to = Vector2( 0, 1000 )
-
-[node name="bleft" type="RayCast2D" parent="."]
-rotation = 2.35619
-enabled = true
-cast_to = Vector2( 0, 1000 )
-
 [node name="front" type="RayCast2D" parent="."]
 rotation = -1.5708
 enabled = true
-cast_to = Vector2( 0, 1000 )
-
-[node name="back" type="RayCast2D" parent="."]
-rotation = 1.5708
-enabled = true
-cast_to = Vector2( 0, 1000 )
+cast_to = Vector2( 0, 10000 )
 
 [node name="right" type="RayCast2D" parent="."]
+rotation = -0.785398
 enabled = true
-cast_to = Vector2( 0, 1000 )
+cast_to = Vector2( 0, 10000 )
 
 [node name="left" type="RayCast2D" parent="."]
-rotation = 3.14159
+rotation = -2.35619
 enabled = true
-cast_to = Vector2( 0, 1000 )
+cast_to = Vector2( 0, 10000 )
+
+[node name="fright" type="RayCast2D" parent="."]
+rotation = -1.39626
+enabled = true
+cast_to = Vector2( 0, 10000 )
+
+[node name="fleft" type="RayCast2D" parent="."]
+rotation = 4.53786
+enabled = true
+cast_to = Vector2( 0, 10000 )
+
+[node name="FPS" type="Camera2D" parent="."]
+zoom = Vector2( 4, 4 )

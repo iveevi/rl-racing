@@ -1,19 +1,21 @@
 #include <agent.hpp>
 
 float Agent::min_vel = -1;
-float Agent::max_vel = 1;
+float Agent::max_vel = 2;
 float Agent::idle_vel = 0.05;
 
 // Perhaps use delta instead
 int Agent::cycle_thresh = 1000;
 
-float Agent::k_a = 1;
+float Agent::k_a = 0.8;
 float Agent::k_b = 0.997;
-float Agent::k_d = 0.999;
+float Agent::k_d = 1 - 1e-4;
 
 // Put lambda into JSON file
 float Agent::lambda = 0.955;
 float Agent::deps = 0.0015;
+
+float vs = 0.1; // stopping velocity
 
 Agent::Agent()
 {
@@ -25,6 +27,7 @@ Agent::Agent()
 	rt = 0;
 
 	// Exploration/exploitation values
+	frames = 0;
 	eps = 1;
 }
 
@@ -59,7 +62,8 @@ void Agent::step(float delta)
 
 	rt += reward;
 
-	double err = fabs(reward + lambda * target(current_state)[a1] - Q_value);
+	// TODO: Fix to get max of target
+	double err = fabs(reward + lambda * target(current_state).max() - Q_value);
 
 	using namespace std;
 	// cout << "err =  " << err << endl;
@@ -87,8 +91,11 @@ void Agent::step(float delta)
 
 	rel->set_text(s.c_str());
 
-	if (frames % 1000 == 0)
+	if (frames > 10000) {
 		eps = cap(eps - deps, 0.1f, 1.0f);
+
+		frames = 0;
+	}
 }
 
 float Agent::get_reward()
@@ -108,12 +115,67 @@ float Agent::get_reward()
 	return 0;
 }
 
+size_t heurestic(Vector <float> &in)
+{
+	/* using namespace std;
+	
+	// Assuming 1/60 is the delta
+	static auto brake_t = [](float vel) {
+		return std::log(vs/vel)/(60.0f
+			* std::log(Agent::k_d));		// Time to reach vs velocity
+	};
+
+	static auto brake_d = [](float vel) {
+		float t = brake_t(vel);
+
+		return vel * (std::pow(Agent::k_d, 60.0f * t) - 1)	// Braking (gliding) distance
+			/ (60.0f * std::log(Agent::k_d));
+	};
+
+	cout << "curr = " << in << endl; */
+	
+	// Default to no steering, no acceleration
+	size_t mx = 2;
+
+	// float ds = fabs(in[4] - in[5]);
+
+	if (in[3] > in[4])
+		mx = 1;
+	else
+		mx = 0;
+	
+	mx += (rand() % 2) * 3;
+
+	/*
+	if (brake_t(in[0]) + 1000 < in[3])
+		mx += 3;
+	else
+		mx += 3 * (rand() % 2);
+
+	if (mx / 3)
+		cout << "\tAccel" << endl;
+	else
+		cout << "\tGlide" << endl;
+
+	if (mx % 3 == 1)
+		cout << "\tLeft" << endl;
+	else if (mx % 3 == 0)
+		cout << "\tRight" << endl;
+	else
+		cout << "\tNone" << endl;
+
+	cout << "\tBrake distance = " << brake_d(in[0]) << endl; */
+
+	return mx;
+}
+
 size_t Agent::get_action()
 {
 	Vector <float> Q_values = model.compute_no_cache(current_state);
 
 	using namespace std;
-	cout << "Q_values: " << Q_values << endl;
+	/* cout << "Q_values: " << Q_values << endl;
+	cout << "current_state = " << current_state << endl; */
 
 	size_t mx = 0;
 
@@ -124,13 +186,7 @@ size_t Agent::get_action()
 		mx = Q_values.imax();
 	} else {
 		// cout << "Heurestic!" << endl;
-		mx = 2;
-		if (current_state[3] - current_state[4] > 0.1)
-			mx = 1;
-		else if (current_state[4] - current_state[3] > 0.1)
-			mx = 0;
-
-		mx += (rnd > 0.5) ? 3 : 0;
+		mx = heurestic(current_state);
 	}
 
 	Q_value = Q_values[mx];
@@ -215,7 +271,8 @@ void Agent::rand_reset()
 	velocity = max_vel * rand()/((double) RAND_MAX);
 	rt = 0;
 	total = 0;
-	frames = 0;
+
+	// frames = 0;
 }
 
 Vector <float> Agent::get_state()
@@ -230,7 +287,7 @@ Vector <float> Agent::get_state()
 			case 2:
 				return velocity * (float) sin(get_rotation());
 			default:
-				Vector2 other = rays[i - 3]->get_collision_point();
+				Vector2 other = rays[i - 2]->get_collision_point();
 
 				return (float) get_global_position().distance_to(other);
 			}
@@ -241,9 +298,9 @@ Vector <float> Agent::get_state()
 void Agent::accelerate(size_t i, float delta)
 {
 	// i = 0 is acceleration, i = 1 is nothing (idle)
-	if (i)
-		velocity *= pow(k_d, delta);
-	else
+	if (i == 0)
+		velocity *= k_d;
+	else if (i == 1)
 		velocity += k_a * delta;
 }
 
@@ -251,9 +308,9 @@ void Agent::steer(size_t i)
 {
 	// i = 0 is left, i = 1 is right
 	if (i == 1)
-		set_rotation(get_rotation() + velocity * 0.0005);
+		set_rotation(get_rotation() + velocity * 0.0015);
 	else if (i == 0)
-		set_rotation(get_rotation() - velocity * 0.0005);
+		set_rotation(get_rotation() - velocity * 0.0015);
 }
 
 void Agent::_ready()
@@ -263,13 +320,13 @@ void Agent::_ready()
 
 	Node2D *nd = Object::cast_to <Node2D> (get_node(spawn)->get_child(0));
 
-	set_rotation_degrees(90 + angle);
+	set_rotation_degrees(90 + nd->get_rotation_degrees());
 	set_global_position(nd->get_global_position());
 
 	ppos = get_global_position();
 
 	rays = new RayCast2D *[8];
-	for (size_t i = 0; i < 8; i++)
+	for (size_t i = 0; i < 5; i++)
 		rays[i] = Object::cast_to <RayCast2D> (get_child(i + 2));
 
 	// Gates

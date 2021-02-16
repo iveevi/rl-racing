@@ -27,10 +27,10 @@ void push(const experience &exp)
 		q.push(exp);
 		// cout << "NOT FULL" << endl;
 	}
-	cout << "prsize = " << q.size() << endl;
+	/* cout << "prsize = " << q.size() << endl;
 	
 	cout << "max err = " << q.top().td << endl;
-	cout << "pushing td = " << exp.td << endl;
+	cout << "pushing td = " << exp.td << endl; */
 }
 
 std::vector <experience> sample_batch(size_t batch_size)
@@ -68,7 +68,7 @@ std::vector <bool> flushed;
 int size = 0;
 
 // Path to the track scene
-const char *p_track = "res://scenes/track1.tscn";
+const char *p_track = "res://scenes/track3.tscn";
 
 // Model
 ml::NeuralNetwork <float> model;
