@@ -25,7 +25,7 @@ def animate(k):
 
     data = pd.read_csv(fpath)
 
-    x = data['episode']
+    x = data['frame']
     y = data['average']
     e = data['epsilon']
     td = data['td']
@@ -56,7 +56,7 @@ def animate(k):
 
     a5.plot(x, e, label="Epsilon")
 
-    plt.xlabel("Episode")
+    plt.xlabel("Frame")
     fig.suptitle("Averages")
 
     a1.legend()

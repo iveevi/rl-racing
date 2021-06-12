@@ -15,7 +15,7 @@
 #include <RayCast2D.hpp>
 
 // Zhetapi headers
-#include <network.hpp>
+#include <dnn.hpp>
 #include <std/activations.hpp>
 #include <std/erfs.hpp>
 
@@ -82,7 +82,7 @@ public:
 	NodePath gates;
 
 	float angle;
-	
+
 	// Methods
 	static void _register_methods();
 
@@ -105,13 +105,13 @@ public:
 	static float idle_vel;		// Maximum velocity considered to be "idle"
 
 	static int cycle_thresh;	// Number of "idle" cycles before reseting
-	
+
 	static float k_a;		// Acceleration constant
 	static float k_b;		// Brake constant
 	static float k_d;		// Drag/friction constant
 
 	static float lambda;		// Discount factor
-	
+
 	static float deps;
 };
 

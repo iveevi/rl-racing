@@ -9,9 +9,17 @@
 #include <set>
 
 // Zhetapi headers
-#include <network.hpp>
+#include <dnn.hpp>
 #include <erf.hpp>
 #include <vector.hpp>
+#include <training.hpp>
+#include <std/optimizers.hpp>
+
+// Debugging
+#define pass_check(msg, code)			\
+	std::cout << msg << std::endl;		\
+	code					\
+	std::cout << "\tPassed." << std::endl;
 
 using namespace zhetapi;
 using namespace godot;
@@ -28,7 +36,7 @@ struct experience {
 	bool operator<(const experience &a) const {
 		return td < a.td;
 	}
-	
+
 	bool operator>(const experience &a) const {
 		return td > a.td;
 	}
@@ -90,11 +98,12 @@ extern std::vector <int> episodes;
 extern std::vector <bool> flushed;
 
 // Global model
-extern ml::NeuralNetwork <float> model;
-extern ml::NeuralNetwork <float> target;
+extern ml::DNN <float> model;
+extern ml::DNN <float> target;
 
 // Cost function
 extern ml::Erf <float> *cost;
+extern ml::Adam <float> *opt;
 
 // Running directory
 extern std::string dir;

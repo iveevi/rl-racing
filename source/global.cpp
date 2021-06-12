@@ -28,7 +28,7 @@ void push(const experience &exp)
 		// cout << "NOT FULL" << endl;
 	}
 	/* cout << "prsize = " << q.size() << endl;
-	
+
 	cout << "max err = " << q.top().td << endl;
 	cout << "pushing td = " << exp.td << endl; */
 }
@@ -71,11 +71,12 @@ int size = 0;
 const char *p_track = "res://scenes/track3.tscn";
 
 // Model
-ml::NeuralNetwork <float> model;
-ml::NeuralNetwork <float> target;
+ml::DNN <float> model;
+ml::DNN <float> target;
 
 // Cost
 ml::Erf <float> *cost;
+ml::Adam <float> *opt;
 
 // Directory
 std::string dir;

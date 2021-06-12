@@ -70,7 +70,7 @@ void Agent::step(float delta)
 
 	total += err;
 	// cout << "total = " << total << endl;
-	
+
 	experience exp {
 		previous_state,
 		a1,
@@ -118,7 +118,7 @@ float Agent::get_reward()
 size_t heurestic(Vector <float> &in)
 {
 	/* using namespace std;
-	
+
 	// Assuming 1/60 is the delta
 	static auto brake_t = [](float vel) {
 		return std::log(vs/vel)/(60.0f
@@ -133,7 +133,7 @@ size_t heurestic(Vector <float> &in)
 	};
 
 	cout << "curr = " << in << endl; */
-	
+
 	// Default to no steering, no acceleration
 	size_t mx = 2;
 
@@ -143,7 +143,7 @@ size_t heurestic(Vector <float> &in)
 		mx = 1;
 	else
 		mx = 0;
-	
+
 	mx += (rand() % 2) * 3;
 
 	/*
@@ -171,7 +171,7 @@ size_t heurestic(Vector <float> &in)
 
 size_t Agent::get_action()
 {
-	Vector <float> Q_values = model.compute_no_cache(current_state);
+	Vector <float> Q_values = model.compute(current_state);
 
 	using namespace std;
 	/* cout << "Q_values: " << Q_values << endl;
@@ -196,7 +196,7 @@ size_t Agent::get_action()
 
 size_t Agent::best_action()
 {
-	Vector <float> Q_values = model.compute_no_cache(current_state);
+	Vector <float> Q_values = model.compute(current_state);
 
 	return Q_values.imax();
 }
@@ -251,9 +251,9 @@ void Agent::rand_reset()
 {
 	int index = rand() % spawns;
 	// int index = 0;
-	
+
 	Node2D *nd = Object::cast_to <Node2D> (get_node(spawn)->get_child(index));
-	
+
 	set_rotation_degrees(90 + nd->get_rotation_degrees());
 	set_global_position(nd->get_global_position());
 
@@ -341,7 +341,7 @@ void Agent::_ready()
 		gate_passed[i] = false;
 		gate_list[i] = Object::cast_to <Area2D> (gate_node->get_child(i));
 	}
-	
+
 	//==============================================================
 	id = size++;
 	agents.push_back(this);

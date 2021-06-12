@@ -22,7 +22,7 @@ add_library(racing SHARED
 
 # Godot bindings
 find_library(GODOT_LIBRARY godot-cpp.linux.debug.64 REQUIRED)
-target_link_libraries(racing PUBLIC ${GODOT_LIBRARY})
+target_link_libraries(racing PUBLIC ${GODOT_LIBRARY} zhp)
 
 # Source include
 include_directories(PUBLIC source)

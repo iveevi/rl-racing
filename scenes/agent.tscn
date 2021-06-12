@@ -50,5 +50,5 @@ rotation = 4.53786
 enabled = true
 cast_to = Vector2( 0, 10000 )
 
-[node name="FPS" type="Camera2D" parent="."]
+[node name="FP_Camera" type="Camera2D" parent="."]
 zoom = Vector2( 4, 4 )

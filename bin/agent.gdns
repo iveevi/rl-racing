@@ -3,7 +3,6 @@
 [ext_resource path="res://bin/agent.gdnlib" type="GDNativeLibrary" id=1]
 
 [resource]
-
 resource_name = "agent"
 class_name = "Agent"
-library = ExtResource(1)
+library = ExtResource( 1 )

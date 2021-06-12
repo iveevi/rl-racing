@@ -4,24 +4,19 @@ RichTextLabel *rel;
 
 Master::Master()
 {
-	auto initializer = []() {
-		return 0.5 - (rand()/(float) RAND_MAX);
-	};
-
 	// Load from JSON file later
-	model = ml::NeuralNetwork <float> ({
-		{5, new ml::Linear <float> ()},
-		{10, new ml::Sigmoid <float> ()},
-		{10, new ml::ReLU <float> ()},		// Added
-		{10, new ml::ReLU <float> ()},		// Added
-		{10, new ml::Sigmoid <float> ()},
-		{6, new ml::Linear <float> ()}
-	}, initializer);
+	model = ml::DNN <float> (5, {
+		ml::Layer <float> (10, new ml::Sigmoid <float> ()),
+		ml::Layer <float> (10, new ml::ReLU <float> ()),	// Added
+		ml::Layer <float> (10, new ml::ReLU <float> ()),	// Added
+		ml::Layer <float> (10, new ml::Sigmoid <float> ()),
+		ml::Layer <float> (6, new ml::Linear <float> ())
+	});
 
-	cost = new ml::MeanSquaredError <float> ();
+	cost = new ml::MSE <float> ();
+	opt = new ml::Adam <float> ();
 
-	model.randomize();
-	model.set_cost(cost);
+	// model.set_cost(cost);
 
 	target = model;
 }
@@ -49,20 +44,20 @@ size_t threads = 1;
 size_t batch_size;
 
 double lr = 0;
+
+size_t frame = 0;
 void Master::_process(float delta)
 {
+	++frame;
+
 	// Put inside a method
 	if (!launch_graphs) {
 		launch_graphs = true;
 
 		std::string cmd;
 
-		/* cmd = "python show_agents.py " + dir + " " + std::to_string(size) + " &";
-
-		system(cmd.c_str()); */
-		
 		cmd = "python show_average.py " + dir + " &";
-		
+
 		system(cmd.c_str());
 	}
 
@@ -94,7 +89,7 @@ void Master::_process(float delta)
 		avg_epsilon /= size;
 		avg_td /= size;
 
-		mout << c_episode << "," << avg_reward << "," << avg_epsilon << "," << avg_td << std::endl;
+		mout << frame << "," << avg_reward << "," << avg_epsilon << "," << avg_td << std::endl;
 
 		c_episode++;
 		avg_reward = 0;
@@ -109,7 +104,6 @@ void Master::_process(float delta)
 	for (size_t i = 0; i < size; i++)
 		agents[i]->step(delta);
 
-	using namespace std;
 	if (full) {
 		/* cout << "======================================================" << endl;
 		cout << "full = " << std::boolalpha << full << endl;
@@ -125,9 +119,9 @@ void Master::_process(float delta)
 			float rt = e.reward;
 
 			if (!e.done) {
-				size_t mx = model.compute_no_cache(e.transition).imax();
+				size_t mx = model.compute(e.transition).imax();
 
-				rt += Agent::lambda * target.compute_no_cache(e.transition)[mx];
+				rt += Agent::lambda * target.compute(e.transition)[mx];
 			}
 
 			Vector <float> action = model(e.state);
@@ -137,7 +131,7 @@ void Master::_process(float delta)
 			outs.push_back(action);
 		}
 
-		model.simple_train <10> (ins, outs, lr);
+		multithreaded_fit(model, ins, outs, cost, opt, 10);
 
 		/* for (auto &e : batch) {
 			size_t mx = model.compute_no_cache(e.transition).imax();
@@ -193,7 +187,7 @@ void Master::_ready()
 	std::string fpath = "results/" + dir + "/main";
 
 	mout.open(fpath);
-	mout << "episode,average,epsilon,td" << std::endl;
+	mout << "frame,average,epsilon,td" << std::endl;
 
 	ResourceLoader *rl = ResourceLoader::get_singleton();
 

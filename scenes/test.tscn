@@ -1,0 +1,14 @@
+[gd_scene load_steps=4 format=2]
+
+[ext_resource path="res://scenes/car.tscn" type="PackedScene" id=1]
+[ext_resource path="res://scenes/track2.tscn" type="PackedScene" id=2]
+[ext_resource path="res://scripts/test_root.gd" type="Script" id=3]
+
+[node name="root" type="Node2D"]
+position = Vector2( 351, 286 )
+script = ExtResource( 3 )
+
+[node name="track" parent="." instance=ExtResource( 2 )]
+
+[node name="car" parent="." instance=ExtResource( 1 )]
+position = Vector2( -734.653, 213.095 )
